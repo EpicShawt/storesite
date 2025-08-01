@@ -22,7 +22,7 @@ const ProductCard = ({ product }) => {
 
   return (
     <motion.div
-      className="group bg-base-100 rounded-lg shadow-md overflow-hidden card-hover"
+      className="group bg-base-200 rounded-lg shadow-xl overflow-hidden card-hover border border-gray-700"
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
       whileHover={{ y: -5 }}
@@ -45,7 +45,7 @@ const ProductCard = ({ product }) => {
           </button>
           <button 
             onClick={handleQuickAdd}
-            className="bg-primary hover:bg-primary-focus text-primary-content p-2 rounded-full shadow-md"
+            className="bg-white hover:bg-gray-200 text-black p-2 rounded-full shadow-md"
           >
             <ShoppingCart className="w-4 h-4" />
           </button>
@@ -53,7 +53,7 @@ const ProductCard = ({ product }) => {
 
         {/* Category Badge */}
         <div className="absolute top-2 left-2">
-          <span className="bg-primary text-primary-content text-xs px-2 py-1 rounded-full">
+          <span className="bg-white text-black text-xs px-2 py-1 rounded-full font-semibold">
             {product.category}
           </span>
         </div>
@@ -62,12 +62,12 @@ const ProductCard = ({ product }) => {
       {/* Product Info */}
       <div className="p-4">
         <Link to={`/product/${product.id}`}>
-          <h3 className="font-semibold text-lg mb-2 hover:text-primary transition-colors">
+          <h3 className="font-semibold text-lg mb-2 text-white hover:text-gray-300 transition-colors">
             {product.name}
           </h3>
         </Link>
         
-        <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+        <p className="text-gray-400 text-sm mb-3 line-clamp-2">
           {product.description}
         </p>
 
@@ -80,12 +80,12 @@ const ProductCard = ({ product }) => {
                 className={`w-4 h-4 ${
                   i < Math.floor(product.rating)
                     ? 'text-yellow-500 fill-current'
-                    : 'text-gray-300'
+                    : 'text-gray-600'
                 }`}
               />
             ))}
           </div>
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-gray-400">
             ({product.reviews})
           </span>
         </div>
@@ -93,7 +93,7 @@ const ProductCard = ({ product }) => {
         {/* Price */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
-            <span className="text-2xl font-bold text-primary">
+            <span className="text-2xl font-bold text-white">
               ₹{product.price}
             </span>
             {product.originalPrice && (
@@ -113,8 +113,8 @@ const ProductCard = ({ product }) => {
                 onClick={() => setSelectedSize(size)}
                 className={`px-3 py-1 text-sm rounded border transition-colors ${
                   selectedSize === size
-                    ? 'bg-primary text-primary-content border-primary'
-                    : 'border-gray-300 hover:border-primary'
+                    ? 'bg-white text-black border-white'
+                    : 'border-gray-600 text-gray-300 hover:border-white hover:text-white'
                 }`}
               >
                 {size}
@@ -126,7 +126,7 @@ const ProductCard = ({ product }) => {
         {/* Add to Cart Button */}
         <button
           onClick={handleAddToCart}
-          className="w-full btn btn-primary"
+          className="w-full btn bg-white text-black hover:bg-gray-200 font-semibold"
         >
           <ShoppingCart className="w-4 h-4 mr-2" />
           Add to Cart

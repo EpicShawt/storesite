@@ -2,14 +2,14 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const AnimatedLogo = () => {
-  const [currentText, setCurrentText] = useState('Asur Wears')
+  const [currentText, setCurrentText] = useState('Asiur Wear')
   const [isRotating, setIsRotating] = useState(false)
 
   useEffect(() => {
     const textSequence = [
-      { text: "Asur Wears", delay: 2000 },
+      { text: "Asiur Wear", delay: 2000 },
       { text: "Mythically Vibey", delay: 2000 },
-      { text: "Asur Wears", delay: 2000 },
+      { text: "Asiur Wear", delay: 2000 },
       { text: "Mythically Vibey", delay: 2000 }
     ]
 
@@ -19,31 +19,26 @@ const AnimatedLogo = () => {
     const animateText = () => {
       const { text, delay } = textSequence[currentIndex]
       
-      // Start rotation
       setIsRotating(true)
       
-      // Change text after rotation starts
       setTimeout(() => {
         setCurrentText('')
         
         setTimeout(() => {
           setCurrentText(text)
           
-          // Stop rotation after text change
           setTimeout(() => {
             setIsRotating(false)
           }, 500)
         }, 500)
       }, 1000)
       
-      // Schedule next animation
       timeoutId = setTimeout(() => {
         currentIndex = (currentIndex + 1) % textSequence.length
         animateText()
       }, delay)
     }
 
-    // Start animation after initial delay
     timeoutId = setTimeout(animateText, 1000)
 
     return () => {
@@ -57,11 +52,13 @@ const AnimatedLogo = () => {
       <motion.div
         className="text-6xl font-bold text-white mb-4"
         animate={{
-          rotate: isRotating ? 180 : 0
+          rotate: 360
         }}
         transition={{
-          duration: 2,
-          ease: "easeInOut"
+          duration: 3,
+          ease: "easeInOut",
+          repeat: Infinity,
+          repeatType: "loop"
         }}
         style={{
           transformOrigin: "center center"

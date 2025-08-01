@@ -9,6 +9,7 @@ import ProductDetail from './pages/ProductDetail'
 import Cart from './pages/Cart'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import AdminLogin from './pages/AdminLogin'
 import AdminPanel from './pages/AdminPanel'
 import { AuthProvider } from './contexts/AuthContext'
 import { CartProvider } from './contexts/CartContext'
@@ -23,10 +24,14 @@ function App() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary to-secondary">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
         <div className="text-center">
-          <div className="animate-pendulum text-6xl mb-4">W</div>
-          <div className="text-white text-xl font-semibold">Loading Asur Wears...</div>
+          <div className="animate-spin text-6xl mb-4 text-white">W</div>
+          <div className="text-white text-xl font-semibold mb-2">Loading Asiur Wear...</div>
+          <div className="text-gray-400 text-sm">Mythically Vibey</div>
+          <div className="mt-4">
+            <div className="loading loading-spinner loading-lg text-white"></div>
+          </div>
         </div>
       </div>
     )
@@ -46,6 +51,7 @@ function App() {
               <Route path="/cart" element={<Cart />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/admin-login" element={<AdminLogin />} />
               <Route path="/admin" element={<AdminPanel />} />
             </Routes>
           </main>

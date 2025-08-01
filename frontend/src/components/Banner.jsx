@@ -13,10 +13,10 @@ const Banner = () => {
   }, [])
 
   return (
-    <div className="bg-gradient-to-r from-primary to-secondary text-primary-content overflow-hidden">
+    <div className="bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 text-white overflow-hidden border-b border-gray-600">
       <div className="relative">
         <motion.div
-          className="whitespace-nowrap py-2 text-center font-semibold"
+          className="whitespace-nowrap py-3 text-center font-semibold"
           animate={{
             x: ['100%', '-100%']
           }}
@@ -27,7 +27,7 @@ const Banner = () => {
             repeatType: "loop"
           }}
         >
-          <span className="inline-block px-4">
+          <span className="inline-block px-4 text-lg">
             {bannerText}
           </span>
         </motion.div>
