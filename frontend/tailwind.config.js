@@ -11,11 +11,19 @@ export default {
         'fade-in': 'fadeIn 0.5s ease-in-out',
         'slide-up': 'slideUp 0.5s ease-in-out',
         'banner-scroll': 'bannerScroll 20s linear infinite',
+        'logo-rotate': 'logoRotate 3s ease-in-out infinite',
       },
       keyframes: {
         pendulum: {
           '0%, 100%': { transform: 'rotate(-15deg)' },
           '50%': { transform: 'rotate(15deg)' },
+        },
+        logoRotate: {
+          '0%': { transform: 'rotate(0deg)' },
+          '25%': { transform: 'rotate(0deg)' },
+          '50%': { transform: 'rotate(180deg)' },
+          '75%': { transform: 'rotate(180deg)' },
+          '100%': { transform: 'rotate(360deg)' },
         },
         fadeIn: {
           '0%': { opacity: '0' },
@@ -34,6 +42,22 @@ export default {
   },
   plugins: [require("daisyui")],
   daisyui: {
-    themes: ["light", "dark"],
+    themes: [
+      {
+        asurwears: {
+          "primary": "#ffffff",
+          "secondary": "#666666",
+          "accent": "#333333",
+          "neutral": "#1a1a1a",
+          "base-100": "#0a0a0a",
+          "base-200": "#1a1a1a",
+          "base-300": "#2a2a2a",
+          "info": "#3abff8",
+          "success": "#36d399",
+          "warning": "#fbbd23",
+          "error": "#f87272",
+        },
+      },
+    ],
   },
 } 
