@@ -9,6 +9,7 @@ const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/products');
 const orderRoutes = require('./routes/orders');
 const adminRoutes = require('./routes/admin');
+const campaignRoutes = require('./routes/campaigns');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -17,7 +18,7 @@ const PORT = process.env.PORT || 5000;
 app.use(helmet());
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://asiur-wear.vercel.app', 'https://asiurwear.vercel.app']
+    ? ['https://asur-wear.vercel.app', 'https://asurwear.vercel.app']
     : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002'],
   credentials: true
 }));
@@ -44,6 +45,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/campaigns', campaignRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

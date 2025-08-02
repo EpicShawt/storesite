@@ -10,7 +10,7 @@ const Home = () => {
 
   useEffect(() => {
     // Load featured products from localStorage or use mock data
-    const savedProducts = localStorage.getItem('asiurwear_products')
+    const savedProducts = localStorage.getItem('asurwear_products')
     if (savedProducts) {
       const products = JSON.parse(savedProducts)
       setFeaturedProducts(products.slice(0, 4)) // Show first 4 products
@@ -65,7 +65,7 @@ const Home = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white py-20">
+      <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white py-16">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <motion.div
@@ -74,11 +74,33 @@ const Home = () => {
               transition={{ duration: 0.8 }}
               className="space-y-6"
             >
-              <h1 className="text-4xl md:text-6xl font-bold leading-tight">
-                Mythically
-                <span className="block text-gradient"> Vibey</span>
-              </h1>
-              <p className="text-xl text-gray-300">
+              {/* Compact Logo in Hero */}
+              <div className="flex items-center space-x-4 mb-6">
+                <motion.div
+                  className="text-3xl font-bold text-white"
+                  animate={{
+                    rotate: 360
+                  }}
+                  transition={{
+                    duration: 3,
+                    ease: "easeInOut",
+                    repeat: Infinity,
+                    repeatType: "loop"
+                  }}
+                  style={{
+                    transformOrigin: "center center"
+                  }}
+                >
+                  W
+                </motion.div>
+                <div>
+                  <h1 className="text-3xl md:text-5xl font-bold leading-tight">
+                    Mythically
+                    <span className="block text-gradient"> Vibey</span>
+                  </h1>
+                </div>
+              </div>
+              <p className="text-lg text-gray-300">
                 Discover our collection of premium t-shirts with unique designs that tell your story. 
                 From Harry Potter to tropical vibes, we've got something for every mood.
               </p>

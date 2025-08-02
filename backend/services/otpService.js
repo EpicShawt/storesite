@@ -3,7 +3,7 @@ const brevoService = require('./brevoService');
 
 class OTPService {
   constructor() {
-    this.storageKey = 'asiurwear_otps';
+    this.storageKey = 'asurwear_otps';
   }
 
   // Generate OTP

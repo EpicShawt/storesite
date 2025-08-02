@@ -27,7 +27,7 @@ function App() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
         <div className="text-center">
           <div className="animate-spin text-6xl mb-4 text-white">W</div>
-          <div className="text-white text-xl font-semibold mb-2">Loading Asiur Wear...</div>
+                      <div className="text-white text-xl font-semibold mb-2">Loading Asur Wear...</div>
           <div className="text-gray-400 text-sm">Mythically Vibey</div>
           <div className="mt-4">
             <div className="loading loading-spinner loading-lg text-white"></div>

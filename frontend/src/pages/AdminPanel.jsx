@@ -150,7 +150,7 @@ const AdminPanel = () => {
       <header className="bg-base-200 border-b border-gray-700 p-4">
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-4">
-            <h1 className="text-2xl font-bold text-white">Asiur Wear Admin</h1>
+            <h1 className="text-2xl font-bold text-white">Asur Wear Admin</h1>
             <span className="text-sm text-gray-400">Welcome, {user?.name}</span>
           </div>
           <button
@@ -498,7 +498,7 @@ const AdminPanel = () => {
                           <label className="block text-sm font-medium text-gray-300 mb-2">Site Name</label>
                           <input
                             type="text"
-                            defaultValue="Asiur Wear"
+                            defaultValue="Asur Wear"
                             className="w-full p-3 bg-base-300 border border-gray-600 rounded-lg text-white"
                           />
                         </div>
@@ -506,7 +506,7 @@ const AdminPanel = () => {
                           <label className="block text-sm font-medium text-gray-300 mb-2">Contact Email</label>
                           <input
                             type="email"
-                            defaultValue="contact@asiurwear.com"
+                            defaultValue="contact@asurwear.com"
                             className="w-full p-3 bg-base-300 border border-gray-600 rounded-lg text-white"
                           />
                         </div>

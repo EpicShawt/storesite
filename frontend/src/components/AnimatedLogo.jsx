@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-const AnimatedLogo = () => {
-  const [currentText, setCurrentText] = useState('Asiur Wear')
+const AnimatedLogo = ({ size = 'large', showText = true }) => {
+  const [currentText, setCurrentText] = useState('Asur Wear')
   const [isRotating, setIsRotating] = useState(false)
 
   useEffect(() => {
     const textSequence = [
-      { text: "Asiur Wear", delay: 2000 },
+      { text: "Asur Wear", delay: 2000 },
       { text: "Mythically Vibey", delay: 2000 },
-      { text: "Asiur Wear", delay: 2000 },
+      { text: "Asur Wear", delay: 2000 },
       { text: "Mythically Vibey", delay: 2000 }
     ]
 
@@ -46,11 +46,32 @@ const AnimatedLogo = () => {
     }
   }, [])
 
+  // Size configurations
+  const sizeConfig = {
+    small: {
+      logoSize: 'text-lg',
+      textSize: 'text-xs',
+      containerClass: 'flex flex-col items-center'
+    },
+    medium: {
+      logoSize: 'text-3xl',
+      textSize: 'text-sm',
+      containerClass: 'flex flex-col items-center'
+    },
+    large: {
+      logoSize: 'text-6xl',
+      textSize: 'text-2xl',
+      containerClass: 'flex flex-col items-center justify-center'
+    }
+  }
+
+  const config = sizeConfig[size]
+
   return (
-    <div className="flex flex-col items-center justify-center">
+    <div className={config.containerClass}>
       {/* Animated W Logo */}
       <motion.div
-        className="text-6xl font-bold text-white mb-4"
+        className={`${config.logoSize} font-bold text-white ${size === 'large' ? 'mb-4' : 'mb-1'}`}
         animate={{
           rotate: 360
         }}
@@ -68,20 +89,22 @@ const AnimatedLogo = () => {
       </motion.div>
 
       {/* Animated Text */}
-      <AnimatePresence mode="wait">
-        {currentText && (
-          <motion.div
-            key={currentText}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.5, ease: "easeInOut" }}
-            className="text-2xl font-semibold text-white"
-          >
-            {currentText}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {showText && (
+        <AnimatePresence mode="wait">
+          {currentText && (
+            <motion.div
+              key={currentText}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5, ease: "easeInOut" }}
+              className={`${config.textSize} font-semibold text-white`}
+            >
+              {currentText}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
     </div>
   )
 }

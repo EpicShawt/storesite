@@ -32,16 +32,38 @@ router.post('/send-otp', async (req, res) => {
       return res.status(400).json({ error: 'Email is required' });
     }
 
-    const result = await sendOTP(email, 'login');
+    const result = await sendOTP(email);
     
     if (result.success) {
-      res.json({ message: 'OTP sent successfully' });
+      res.json({ message: 'OTP sent successfully to your email' });
     } else {
       res.status(500).json({ error: result.message });
     }
   } catch (error) {
     console.error('Send OTP error:', error);
     res.status(500).json({ error: 'Failed to send OTP' });
+  }
+});
+
+// Get stored OTP (for testing purposes only)
+router.post('/get-otp', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const otp = await require('../services/otpService').getStoredOTP(email);
+    
+    if (otp) {
+      res.json({ otp });
+    } else {
+      res.status(404).json({ error: 'No OTP found for this email' });
+    }
+  } catch (error) {
+    console.error('Get OTP error:', error);
+    res.status(500).json({ error: 'Failed to get OTP' });
   }
 });
 

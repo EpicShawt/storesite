@@ -1,91 +1,116 @@
-// Simple OTP service that works without email configuration
+// OTP service that connects to backend API for email delivery
 class OTPService {
   constructor() {
-    // For development/testing, we'll store OTPs in localStorage
-    this.storageKey = 'asiurwear_otps';
+
+    // Use environment variable or fallback to localhost for development
+    this.apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    
+    // For production, if no environment variable is set, try to detect the backend URL
+    if (!import.meta.env.VITE_API_URL && window.location.hostname !== 'localhost') {
+      // Try to guess the backend URL based on the frontend URL
+      const hostname = window.location.hostname;
+      if (hostname.includes('vercel.app')) {
+        // If frontend is on Vercel, backend is likely on Railway
+        this.apiBaseUrl = 'https://asurwears-backend.onrender.com/api';
+      }
+    }
   }
 
-  // Generate OTP
-  generateOTP() {
-    return Math.floor(100000 + Math.random() * 900000).toString();
-  }
-
-  // Send OTP (simulated for now)
+  // Send OTP via backend API
   async sendOTP(email) {
     try {
-      const otp = this.generateOTP();
-      
-      // Store OTP in localStorage for testing
-      const otpData = {
-        email,
-        otp,
-        timestamp: Date.now(),
-        expiresAt: Date.now() + (10 * 60 * 1000) // 10 minutes
-      };
-      
-      localStorage.setItem(this.storageKey, JSON.stringify(otpData));
-      
-      // For now, we'll just log the OTP (in production, this would send email)
-      console.log(`OTP for ${email}: ${otp}`);
-      console.log('Check browser console (F12) to see the OTP');
-      
-      return { success: true, message: 'OTP sent successfully' };
+      const response = await fetch(`${this.apiBaseUrl}/auth/send-otp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        return { success: true, message: data.message || 'OTP sent successfully to your email' };
+      } else {
+        return { success: false, message: data.error || 'Failed to send OTP' };
+      }
     } catch (error) {
       console.error('Send OTP error:', error);
-      return { success: false, message: 'Failed to send OTP' };
+      return { success: false, message: 'Network error. Please check your connection.' };
     }
   }
 
-  // Verify OTP
+  // Verify OTP via backend API
   async verifyOTP(email, otp) {
     try {
-      const storedData = localStorage.getItem(this.storageKey);
-      if (!storedData) {
-        return { success: false, message: 'No OTP found' };
-      }
+      const response = await fetch(`${this.apiBaseUrl}/auth/verify-otp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, otp }),
+      });
 
-      const otpData = JSON.parse(storedData);
-      
-      // Check if OTP is for the correct email
-      if (otpData.email !== email) {
-        return { success: false, message: 'Invalid email' };
+      const data = await response.json();
+
+      if (response.ok) {
+        // Store the token and user data
+        if (data.token) {
+              localStorage.setItem('asurwear_token', data.token);
+    localStorage.setItem('asurwear_user', JSON.stringify(data.user));
+        }
+        return { success: true, message: data.message || 'OTP verified successfully' };
+      } else {
+        return { success: false, message: data.error || 'Failed to verify OTP' };
       }
-      
-      // Check if OTP is expired
-      if (Date.now() > otpData.expiresAt) {
-        localStorage.removeItem(this.storageKey);
-        return { success: false, message: 'OTP expired' };
-      }
-      
-      // Check if OTP matches
-      if (otpData.otp !== otp) {
-        return { success: false, message: 'Invalid OTP' };
-      }
-      
-      // Clear OTP after successful verification
-      localStorage.removeItem(this.storageKey);
-      
-      return { success: true, message: 'OTP verified successfully' };
     } catch (error) {
       console.error('Verify OTP error:', error);
-      return { success: false, message: 'Error verifying OTP' };
+      return { success: false, message: 'Network error. Please check your connection.' };
     }
   }
 
-  // Get stored OTP (for testing)
-  getStoredOTP() {
+  // Get stored OTP (for testing - this will be removed in production)
+  async getStoredOTP(email) {
     try {
-      const storedData = localStorage.getItem(this.storageKey);
-      if (storedData) {
-        const otpData = JSON.parse(storedData);
-        if (Date.now() <= otpData.expiresAt) {
-          return otpData.otp;
-        }
+      const response = await fetch(`${this.apiBaseUrl}/auth/get-otp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.otp) {
+        return data.otp;
       }
       return null;
     } catch (error) {
+      console.error('Get stored OTP error:', error);
       return null;
     }
+  }
+
+  // Get current user from localStorage
+  getCurrentUser() {
+    try {
+      const userData = localStorage.getItem('asurwear_user');
+      return userData ? JSON.parse(userData) : null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  // Get auth token
+  getToken() {
+    return localStorage.getItem('asurwear_token');
+  }
+
+  // Clear auth data
+  clearAuth() {
+    localStorage.removeItem('asurwear_token');
+    localStorage.removeItem('asurwear_user');
   }
 }
 

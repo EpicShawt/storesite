@@ -27,8 +27,15 @@ const Login = () => {
       const result = await otpService.sendOTP(email)
       if (result.success) {
         setIsOtpSent(true)
-        toast.success('OTP sent successfully! Check console for OTP code.')
-        console.log('OTP Code:', otpService.getStoredOTP())
+        toast.success('OTP sent successfully! Check your email for the code.')
+        // For testing purposes, also log to console
+        setTimeout(async () => {
+          const testOtp = await otpService.getStoredOTP(email)
+          if (testOtp) {
+            console.log('Test OTP Code:', testOtp)
+            console.log('Check browser console (F12) to see the OTP for testing')
+          }
+        }, 2000)
       } else {
         toast.error(result.message)
       }
@@ -51,15 +58,23 @@ const Login = () => {
     try {
       const result = await otpService.verifyOTP(email, otp)
       if (result.success) {
-        // Create user session
-        const user = {
-          email,
-          name: email.split('@')[0],
-          isAdmin: email.includes('admin')
+        // Get user data from the service
+        const user = otpService.getCurrentUser()
+        if (user) {
+          login(user)
+          toast.success('Login successful!')
+          navigate('/')
+        } else {
+          // Fallback to creating user object
+          const fallbackUser = {
+            email,
+            name: email.split('@')[0],
+            isAdmin: email.includes('admin')
+          }
+          login(fallbackUser)
+          toast.success('Login successful!')
+          navigate('/')
         }
-        login(user)
-        toast.success('Login successful!')
-        navigate('/')
       } else {
         toast.error(result.message)
       }
@@ -75,8 +90,15 @@ const Login = () => {
     try {
       const result = await otpService.sendOTP(email)
       if (result.success) {
-        toast.success('OTP resent successfully! Check console for OTP code.')
-        console.log('OTP Code:', otpService.getStoredOTP())
+        toast.success('OTP resent successfully! Check your email for the code.')
+        // For testing purposes, also log to console
+        setTimeout(async () => {
+          const testOtp = await otpService.getStoredOTP(email)
+          if (testOtp) {
+            console.log('Test OTP Code:', testOtp)
+            console.log('Check browser console (F12) to see the OTP for testing')
+          }
+        }, 2000)
       } else {
         toast.error(result.message)
       }
@@ -168,7 +190,7 @@ const Login = () => {
                   OTP sent to <span className="font-medium text-white">{email}</span>
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
-                  Check browser console for OTP code (for testing)
+                  Check your email inbox and spam folder. For testing, check browser console (F12).
                 </p>
               </div>
 

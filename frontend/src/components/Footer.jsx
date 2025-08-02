@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Phone, Mail, MapPin, MessageCircle } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 const Footer = () => {
   return (
@@ -8,7 +9,26 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-white">Asiur Wear</h3>
+            <div className="flex items-center space-x-3">
+              <motion.div
+                className="text-xl font-bold text-white"
+                animate={{
+                  rotate: 360
+                }}
+                transition={{
+                  duration: 3,
+                  ease: "easeInOut",
+                  repeat: Infinity,
+                  repeatType: "loop"
+                }}
+                style={{
+                  transformOrigin: "center center"
+                }}
+              >
+                W
+              </motion.div>
+              <h3 className="text-lg font-semibold text-white">Asur Wear</h3>
+            </div>
             <p className="text-sm text-gray-300">
               Mythically Vibey clothing for the modern generation. 
               Premium quality t-shirts with unique designs.
@@ -96,7 +116,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <Mail className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-300">support@asiurwear.com</span>
+                <span className="text-gray-300">support@asurwear.com</span>
               </div>
               <div className="flex items-center space-x-2">
                 <MapPin className="w-4 h-4 text-gray-400" />
@@ -104,7 +124,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <MessageCircle className="w-4 h-4 text-gray-400" />
-                <a href="https://t.me/asiurwear" className="text-gray-300 hover:text-white transition-colors">
+                <a href="https://t.me/asurwear" className="text-gray-300 hover:text-white transition-colors">
                   Telegram
                 </a>
               </div>
@@ -116,7 +136,7 @@ const Footer = () => {
         <div className="border-t border-gray-600 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-sm text-gray-400">
-              © 2025 Asiur Wear. All rights reserved.
+              © 2025 Asur Wear. All rights reserved.
             </div>
             <div className="flex space-x-6 text-sm">
               <a href="#" className="text-gray-400 hover:text-white transition-colors">
