@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowRight, Star, Truck, Shield, RefreshCw } from 'lucide-react'
 import ProductCard from '../components/ProductCard'
+import AdBanner from '../components/AdBanner'
 
 const Home = () => {
   const [featuredProducts, setFeaturedProducts] = useState([])
