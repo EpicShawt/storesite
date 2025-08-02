@@ -24,6 +24,11 @@ export const AuthProvider = ({ children }) => {
     }
   }, [])
 
+  const login = (userData) => {
+    setUser(userData)
+    localStorage.setItem('asurwears_user', JSON.stringify(userData))
+  }
+
   const sendOTP = async (email) => {
     setIsLoading(true)
     try {
@@ -115,6 +120,7 @@ export const AuthProvider = ({ children }) => {
     user,
     isLoading,
     otpSent,
+    login,
     sendOTP,
     verifyOTP,
     register,

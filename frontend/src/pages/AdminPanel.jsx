@@ -10,44 +10,60 @@ import {
   Users, 
   DollarSign,
   Settings,
-  Image as ImageIcon
+  Image as ImageIcon,
+  LogOut,
+  User,
+  ShoppingCart,
+  TrendingUp,
+  FileText
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
+import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 
 const AdminPanel = () => {
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [products, setProducts] = useState([])
-  const [bannerText, setBannerText] = useState('')
+  const [users, setUsers] = useState([])
+  const [orders, setOrders] = useState([])
+  const [bannerText, setBannerText] = useState('50% OFF - Limited Time Offer!')
   const [newProduct, setNewProduct] = useState({
     name: '',
     price: '',
     description: '',
     category: '',
-    image: ''
+    image: '',
+    sizes: ['S', 'M', 'L', 'XL', 'XXL']
   })
 
   useEffect(() => {
-    // Load products and banner text
+    // Load data from localStorage
     const savedProducts = localStorage.getItem('asurwears_products')
+    const savedUsers = localStorage.getItem('asurwears_users')
+    const savedOrders = localStorage.getItem('asurwears_orders')
     const savedBanner = localStorage.getItem('asurwears_banner')
     
-    if (savedProducts) {
-      setProducts(JSON.parse(savedProducts))
-    }
-    if (savedBanner) {
-      setBannerText(savedBanner)
-    }
+    if (savedProducts) setProducts(JSON.parse(savedProducts))
+    if (savedUsers) setUsers(JSON.parse(savedUsers))
+    if (savedOrders) setOrders(JSON.parse(savedOrders))
+    if (savedBanner) setBannerText(savedBanner)
   }, [])
 
   // Check if user is admin
   if (!user?.isAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+        <div className="text-center text-white">
           <h2 className="text-2xl font-bold mb-4">Access Denied</h2>
-          <p className="text-gray-600">You need admin privileges to access this page.</p>
+          <p className="text-gray-300 mb-4">You need admin privileges to access this page.</p>
+          <button 
+            onClick={() => navigate('/admin-login')}
+            className="btn bg-white text-black hover:bg-gray-200"
+          >
+            Go to Admin Login
+          </button>
         </div>
       </div>
     )
@@ -65,7 +81,7 @@ const AdminPanel = () => {
       price: parseInt(newProduct.price),
       rating: 4.5,
       reviews: Math.floor(Math.random() * 200) + 50,
-      sizes: ['S', 'M', 'L', 'XL', 'XXL']
+      createdAt: new Date().toISOString()
     }
 
     const updatedProducts = [...products, product]
@@ -77,7 +93,8 @@ const AdminPanel = () => {
       price: '',
       description: '',
       category: '',
-      image: ''
+      image: '',
+      sizes: ['S', 'M', 'L', 'XL', 'XXL']
     })
     
     toast.success('Product added successfully!')
@@ -95,345 +112,412 @@ const AdminPanel = () => {
     toast.success('Banner updated successfully!')
   }
 
+  const handleLogout = () => {
+    logout()
+    navigate('/')
+  }
+
   const stats = [
     {
       title: 'Total Products',
       value: products.length,
       icon: Package,
-      color: 'text-blue-600'
+      color: 'text-blue-500'
     },
     {
-      title: 'Total Sales',
-      value: '₹24,500',
-      icon: DollarSign,
-      color: 'text-green-600'
+      title: 'Total Users',
+      value: users.length,
+      icon: Users,
+      color: 'text-green-500'
     },
     {
       title: 'Total Orders',
-      value: '156',
-      icon: BarChart3,
-      color: 'text-purple-600'
+      value: orders.length,
+      icon: ShoppingCart,
+      color: 'text-purple-500'
     },
     {
-      title: 'Total Customers',
-      value: '89',
-      icon: Users,
-      color: 'text-orange-600'
+      title: 'Revenue',
+      value: `₹${orders.reduce((sum, order) => sum + order.total, 0).toLocaleString()}`,
+      icon: DollarSign,
+      color: 'text-yellow-500'
     }
   ]
 
   return (
-    <div className="min-h-screen bg-base-200">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold">Admin Panel</h1>
-          <div className="text-sm text-gray-600">
-            Welcome back, {user?.name}
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      {/* Header */}
+      <header className="bg-base-200 border-b border-gray-700 p-4">
+        <div className="container mx-auto flex justify-between items-center">
+          <div className="flex items-center space-x-4">
+            <h1 className="text-2xl font-bold text-white">Asiur Wear Admin</h1>
+            <span className="text-sm text-gray-400">Welcome, {user?.name}</span>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="btn btn-sm bg-red-600 hover:bg-red-700 text-white"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Logout
+          </button>
+        </div>
+      </header>
+
+      <div className="container mx-auto p-4">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="bg-base-200 rounded-lg p-4 border border-gray-700">
+              <nav className="space-y-2">
+                {[
+                  { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+                  { id: 'products', label: 'Products', icon: Package },
+                  { id: 'users', label: 'Users', icon: Users },
+                  { id: 'orders', label: 'Orders', icon: ShoppingCart },
+                  { id: 'settings', label: 'Settings', icon: Settings }
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`w-full flex items-center space-x-3 p-3 rounded-lg transition-colors ${
+                      activeTab === tab.id
+                        ? 'bg-white text-black'
+                        : 'text-gray-300 hover:bg-base-300'
+                    }`}
+                  >
+                    <tab.icon className="w-5 h-5" />
+                    <span>{tab.label}</span>
+                  </button>
+                ))}
+              </nav>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="lg:col-span-3">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="bg-base-200 rounded-lg p-6 border border-gray-700"
+            >
+              {/* Dashboard Tab */}
+              {activeTab === 'dashboard' && (
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-6">Dashboard</h2>
+                  
+                  {/* Stats Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    {stats.map((stat, index) => (
+                      <motion.div
+                        key={stat.title}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                        className="bg-base-300 p-4 rounded-lg border border-gray-600"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-gray-400 text-sm">{stat.title}</p>
+                            <p className="text-2xl font-bold text-white">{stat.value}</p>
+                          </div>
+                          <stat.icon className={`w-8 h-8 ${stat.color}`} />
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+
+                  {/* Recent Activity */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="bg-base-300 p-4 rounded-lg border border-gray-600">
+                      <h3 className="text-lg font-semibold text-white mb-4">Recent Products</h3>
+                      <div className="space-y-2">
+                        {products.slice(-5).map((product) => (
+                          <div key={product.id} className="flex items-center space-x-3 p-2 bg-base-200 rounded">
+                            <Package className="w-4 h-4 text-blue-500" />
+                            <span className="text-white text-sm">{product.name}</span>
+                            <span className="text-gray-400 text-xs">₹{product.price}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="bg-base-300 p-4 rounded-lg border border-gray-600">
+                      <h3 className="text-lg font-semibold text-white mb-4">Recent Orders</h3>
+                      <div className="space-y-2">
+                        {orders.slice(-5).map((order) => (
+                          <div key={order.id} className="flex items-center space-x-3 p-2 bg-base-200 rounded">
+                            <ShoppingCart className="w-4 h-4 text-green-500" />
+                            <span className="text-white text-sm">Order #{order.id}</span>
+                            <span className="text-gray-400 text-xs">₹{order.total}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Products Tab */}
+              {activeTab === 'products' && (
+                <div>
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-bold text-white">Products Management</h2>
+                    <button
+                      onClick={() => setActiveTab('add-product')}
+                      className="btn bg-white text-black hover:bg-gray-200"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Product
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {products.map((product) => (
+                      <div key={product.id} className="bg-base-300 p-4 rounded-lg border border-gray-600">
+                        <img
+                          src={product.image || 'https://via.placeholder.com/200x200?text=Product'}
+                          alt={product.name}
+                          className="w-full h-32 object-cover rounded mb-3"
+                        />
+                        <h3 className="text-white font-semibold mb-2">{product.name}</h3>
+                        <p className="text-gray-400 text-sm mb-2">{product.description}</p>
+                        <div className="flex justify-between items-center">
+                          <span className="text-white font-bold">₹{product.price}</span>
+                          <button
+                            onClick={() => handleDeleteProduct(product.id)}
+                            className="btn btn-sm bg-red-600 hover:bg-red-700 text-white"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Add Product Tab */}
+              {activeTab === 'add-product' && (
+                <div>
+                  <div className="flex items-center space-x-4 mb-6">
+                    <button
+                      onClick={() => setActiveTab('products')}
+                      className="btn btn-sm bg-gray-600 hover:bg-gray-700 text-white"
+                    >
+                      ← Back to Products
+                    </button>
+                    <h2 className="text-2xl font-bold text-white">Add New Product</h2>
+                  </div>
+
+                  <form onSubmit={(e) => { e.preventDefault(); handleAddProduct(); }} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">Product Name</label>
+                        <input
+                          type="text"
+                          value={newProduct.name}
+                          onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
+                          className="w-full p-3 bg-base-300 border border-gray-600 rounded-lg text-white"
+                          placeholder="Enter product name"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">Price (₹)</label>
+                        <input
+                          type="number"
+                          value={newProduct.price}
+                          onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
+                          className="w-full p-3 bg-base-300 border border-gray-600 rounded-lg text-white"
+                          placeholder="Enter price"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Category</label>
+                      <input
+                        type="text"
+                        value={newProduct.category}
+                        onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}
+                        className="w-full p-3 bg-base-300 border border-gray-600 rounded-lg text-white"
+                        placeholder="Enter category"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Description</label>
+                      <textarea
+                        value={newProduct.description}
+                        onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
+                        className="w-full p-3 bg-base-300 border border-gray-600 rounded-lg text-white"
+                        rows="3"
+                        placeholder="Enter product description"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Image URL</label>
+                      <input
+                        type="url"
+                        value={newProduct.image}
+                        onChange={(e) => setNewProduct({...newProduct, image: e.target.value})}
+                        className="w-full p-3 bg-base-300 border border-gray-600 rounded-lg text-white"
+                        placeholder="Enter image URL"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="btn btn-lg bg-white text-black hover:bg-gray-200 w-full"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Product
+                    </button>
+                  </form>
+                </div>
+              )}
+
+              {/* Users Tab */}
+              {activeTab === 'users' && (
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-6">Users Management</h2>
+                  <div className="bg-base-300 rounded-lg border border-gray-600 overflow-hidden">
+                    <table className="w-full">
+                      <thead className="bg-base-200">
+                        <tr>
+                          <th className="text-left p-4 text-white">User</th>
+                          <th className="text-left p-4 text-white">Email</th>
+                          <th className="text-left p-4 text-white">Role</th>
+                          <th className="text-left p-4 text-white">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {users.map((user) => (
+                          <tr key={user.id} className="border-t border-gray-600">
+                            <td className="p-4 text-white">{user.name}</td>
+                            <td className="p-4 text-gray-300">{user.email}</td>
+                            <td className="p-4">
+                              <span className={`px-2 py-1 rounded text-xs ${
+                                user.isAdmin ? 'bg-red-600 text-white' : 'bg-green-600 text-white'
+                              }`}>
+                                {user.isAdmin ? 'Admin' : 'User'}
+                              </span>
+                            </td>
+                            <td className="p-4">
+                              <button className="btn btn-sm bg-blue-600 hover:bg-blue-700 text-white mr-2">
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button className="btn btn-sm bg-red-600 hover:bg-red-700 text-white">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Orders Tab */}
+              {activeTab === 'orders' && (
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-6">Orders Management</h2>
+                  <div className="bg-base-300 rounded-lg border border-gray-600 overflow-hidden">
+                    <table className="w-full">
+                      <thead className="bg-base-200">
+                        <tr>
+                          <th className="text-left p-4 text-white">Order ID</th>
+                          <th className="text-left p-4 text-white">Customer</th>
+                          <th className="text-left p-4 text-white">Total</th>
+                          <th className="text-left p-4 text-white">Status</th>
+                          <th className="text-left p-4 text-white">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {orders.map((order) => (
+                          <tr key={order.id} className="border-t border-gray-600">
+                            <td className="p-4 text-white">#{order.id}</td>
+                            <td className="p-4 text-gray-300">{order.customer}</td>
+                            <td className="p-4 text-white">₹{order.total}</td>
+                            <td className="p-4">
+                              <span className="px-2 py-1 rounded text-xs bg-green-600 text-white">
+                                Completed
+                              </span>
+                            </td>
+                            <td className="p-4">
+                              <button className="btn btn-sm bg-blue-600 hover:bg-blue-700 text-white">
+                                View Details
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Settings Tab */}
+              {activeTab === 'settings' && (
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-6">Site Settings</h2>
+                  
+                  <div className="space-y-6">
+                    <div className="bg-base-300 p-4 rounded-lg border border-gray-600">
+                      <h3 className="text-lg font-semibold text-white mb-4">Banner Settings</h3>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">Banner Text</label>
+                          <input
+                            type="text"
+                            value={bannerText}
+                            onChange={(e) => setBannerText(e.target.value)}
+                            className="w-full p-3 bg-base-300 border border-gray-600 rounded-lg text-white"
+                            placeholder="Enter banner text"
+                          />
+                        </div>
+                        <button
+                          onClick={handleUpdateBanner}
+                          className="btn bg-white text-black hover:bg-gray-200"
+                        >
+                          Update Banner
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="bg-base-300 p-4 rounded-lg border border-gray-600">
+                      <h3 className="text-lg font-semibold text-white mb-4">Site Information</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">Site Name</label>
+                          <input
+                            type="text"
+                            defaultValue="Asiur Wear"
+                            className="w-full p-3 bg-base-300 border border-gray-600 rounded-lg text-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">Contact Email</label>
+                          <input
+                            type="email"
+                            defaultValue="contact@asiurwear.com"
+                            className="w-full p-3 bg-base-300 border border-gray-600 rounded-lg text-white"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </motion.div>
           </div>
         </div>
-
-        {/* Navigation Tabs */}
-        <div className="flex space-x-1 bg-base-100 rounded-lg p-1 mb-8">
-          {[
-            { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-            { id: 'products', label: 'Products', icon: Package },
-            { id: 'banner', label: 'Banner', icon: ImageIcon },
-            { id: 'settings', label: 'Settings', icon: Settings }
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
-                activeTab === tab.id
-                  ? 'bg-primary text-primary-content'
-                  : 'hover:bg-base-200'
-              }`}
-            >
-              <tab.icon className="w-4 h-4" />
-              <span>{tab.label}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* Dashboard Tab */}
-        {activeTab === 'dashboard' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
-          >
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              {stats.map((stat, index) => (
-                <motion.div
-                  key={stat.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="bg-base-100 rounded-lg p-6 shadow-md"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600">{stat.title}</p>
-                      <p className="text-2xl font-bold">{stat.value}</p>
-                    </div>
-                    <div className={`p-3 rounded-full bg-base-200 ${stat.color}`}>
-                      <stat.icon className="w-6 h-6" />
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Recent Orders */}
-            <div className="bg-base-100 rounded-lg p-6 shadow-md">
-              <h3 className="text-xl font-semibold mb-4">Recent Orders</h3>
-              <div className="overflow-x-auto">
-                <table className="table w-full">
-                  <thead>
-                    <tr>
-                      <th>Order ID</th>
-                      <th>Customer</th>
-                      <th>Products</th>
-                      <th>Total</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>#12345</td>
-                      <td>John Doe</td>
-                      <td>Platform 9¾ T-Shirt</td>
-                      <td>₹499</td>
-                      <td><span className="badge badge-success">Delivered</span></td>
-                    </tr>
-                    <tr>
-                      <td>#12346</td>
-                      <td>Jane Smith</td>
-                      <td>Tropical State of Mind</td>
-                      <td>₹499</td>
-                      <td><span className="badge badge-warning">Processing</span></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Products Tab */}
-        {activeTab === 'products' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
-          >
-            {/* Add Product Form */}
-            <div className="bg-base-100 rounded-lg p-6 shadow-md">
-              <h3 className="text-xl font-semibold mb-4">Add New Product</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Product Name</label>
-                  <input
-                    type="text"
-                    value={newProduct.name}
-                    onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="Enter product name"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Price (₹)</label>
-                  <input
-                    type="number"
-                    value={newProduct.price}
-                    onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="Enter price"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Category</label>
-                  <select
-                    value={newProduct.category}
-                    onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <option value="">Select category</option>
-                    <option value="Harry Potter">Harry Potter</option>
-                    <option value="Tropical">Tropical</option>
-                    <option value="Sweaters">Sweaters</option>
-                    <option value="Vintage">Vintage</option>
-                    <option value="Minimalist">Minimalist</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Image URL</label>
-                  <input
-                    type="url"
-                    value={newProduct.image}
-                    onChange={(e) => setNewProduct({...newProduct, image: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="Enter image URL"
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium mb-2">Description</label>
-                  <textarea
-                    value={newProduct.description}
-                    onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    rows="3"
-                    placeholder="Enter product description"
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <button
-                    onClick={handleAddProduct}
-                    className="btn btn-primary"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Product
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Products List */}
-            <div className="bg-base-100 rounded-lg p-6 shadow-md">
-              <h3 className="text-xl font-semibold mb-4">All Products</h3>
-              <div className="overflow-x-auto">
-                <table className="table w-full">
-                  <thead>
-                    <tr>
-                      <th>Image</th>
-                      <th>Name</th>
-                      <th>Category</th>
-                      <th>Price</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {products.map((product) => (
-                      <tr key={product.id}>
-                        <td>
-                          <img
-                            src={product.image}
-                            alt={product.name}
-                            className="w-12 h-12 object-cover rounded"
-                          />
-                        </td>
-                        <td>{product.name}</td>
-                        <td>{product.category}</td>
-                        <td>₹{product.price}</td>
-                        <td>
-                          <div className="flex space-x-2">
-                            <button className="btn btn-sm btn-outline">
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteProduct(product.id)}
-                              className="btn btn-sm btn-error"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Banner Tab */}
-        {activeTab === 'banner' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
-          >
-            <div className="bg-base-100 rounded-lg p-6 shadow-md">
-              <h3 className="text-xl font-semibold mb-4">Banner Management</h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Banner Text</label>
-                  <textarea
-                    value={bannerText}
-                    onChange={(e) => setBannerText(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    rows="3"
-                    placeholder="Enter banner text (e.g., 🎉 50% OFF ON ALL PRODUCTS! FREE SHIPPING ON ORDERS ABOVE ₹999 🎉)"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Banner Image (Optional)</label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                    <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                    <p className="text-sm text-gray-600">
-                      Recommended size: 1200x200px, Max file size: 200KB
-                    </p>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="mt-2"
-                    />
-                  </div>
-                </div>
-                <button
-                  onClick={handleUpdateBanner}
-                  className="btn btn-primary"
-                >
-                  Update Banner
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Settings Tab */}
-        {activeTab === 'settings' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
-          >
-            <div className="bg-base-100 rounded-lg p-6 shadow-md">
-              <h3 className="text-xl font-semibold mb-4">Store Settings</h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Store Name</label>
-                  <input
-                    type="text"
-                    defaultValue="Asur Wears"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Shipping Cost (₹)</label>
-                  <input
-                    type="number"
-                    defaultValue="50"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Free Shipping Threshold (₹)</label>
-                  <input
-                    type="number"
-                    defaultValue="999"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                </div>
-                <button className="btn btn-primary">
-                  Save Settings
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
       </div>
     </div>
   )
