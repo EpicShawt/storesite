@@ -1,109 +1,107 @@
 const OTP = require('../models/OTP');
-const crypto = require('crypto');
+const brevoService = require('./brevoService');
 
-// Free email service using EmailJS (no configuration needed)
-const sendEmailOTP = async (email, otp) => {
-  try {
-    // Using a free email service - EmailJS
-    const emailData = {
-      service_id: 'asurwears_service', // This will be configured on frontend
-      template_id: 'otp_template',
-      user_id: 'your_user_id', // This will be configured on frontend
-      template_params: {
-        to_email: email,
-        otp_code: otp,
-        message: `Your Asur Wears OTP is: ${otp}. Valid for 10 minutes.`
-      }
-    };
-
-    // For now, we'll simulate email sending
-    // In production, this would be handled by EmailJS
-    console.log(`OTP ${otp} sent to ${email}`);
-    
-    return true;
-  } catch (error) {
-    console.error('Email sending error:', error);
-    return false;
+class OTPService {
+  constructor() {
+    this.storageKey = 'asiurwear_otps';
   }
-};
 
-// Generate OTP
-const generateOTP = () => {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-};
+  // Generate OTP
+  generateOTP() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
 
-// Send OTP
-const sendOTP = async (email, type = 'login') => {
-  try {
-    // Generate OTP
-    const otp = generateOTP();
-    
-    // Save OTP to database
-    const otpDoc = new OTP({
-      email,
-      otp,
-      type,
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
-    });
-    
-    await otpDoc.save();
-    
-    // Send email
-    const emailSent = await sendEmailOTP(email, otp);
-    
-    if (emailSent) {
-      return { success: true, message: 'OTP sent successfully' };
-    } else {
+  // Send OTP via Brevo
+  async sendOTP(email) {
+    try {
+      const otp = this.generateOTP();
+      
+      // Store OTP in database
+      const otpData = {
+        email,
+        otp,
+        timestamp: Date.now(),
+        expiresAt: Date.now() + (10 * 60 * 1000) // 10 minutes
+      };
+      
+      // Save to MongoDB
+      await OTP.findOneAndUpdate(
+        { email },
+        otpData,
+        { upsert: true, new: true }
+      );
+      
+      // Send email via Brevo
+      const emailResult = await brevoService.sendOTP(email, otp);
+      
+      if (emailResult.success) {
+        console.log(`OTP sent to ${email} via Brevo: ${otp}`);
+        return { success: true, message: 'OTP sent successfully to your email' };
+      } else {
+        console.error('Failed to send OTP via Brevo:', emailResult.message);
+        return { success: false, message: 'Failed to send OTP. Please try again.' };
+      }
+    } catch (error) {
+      console.error('Send OTP error:', error);
       return { success: false, message: 'Failed to send OTP' };
     }
-  } catch (error) {
-    console.error('Send OTP error:', error);
-    return { success: false, message: 'Error sending OTP' };
   }
-};
 
-// Verify OTP
-const verifyOTP = async (email, otp, type = 'login') => {
-  try {
-    const otpDoc = await OTP.findOne({
-      email,
-      otp,
-      type,
-      used: false,
-      expiresAt: { $gt: new Date() }
-    });
-    
-    if (!otpDoc) {
-      return { success: false, message: 'Invalid or expired OTP' };
+  // Verify OTP
+  async verifyOTP(email, otp) {
+    try {
+      // Find OTP in database
+      const otpData = await OTP.findOne({ email });
+      
+      if (!otpData) {
+        return { success: false, message: 'No OTP found for this email' };
+      }
+      
+      // Check if OTP is expired
+      if (Date.now() > otpData.expiresAt) {
+        await OTP.deleteOne({ email });
+        return { success: false, message: 'OTP has expired. Please request a new one.' };
+      }
+      
+      // Check if OTP matches
+      if (otpData.otp !== otp) {
+        return { success: false, message: 'Invalid OTP. Please check and try again.' };
+      }
+      
+      // Clear OTP after successful verification
+      await OTP.deleteOne({ email });
+      
+      return { success: true, message: 'OTP verified successfully' };
+    } catch (error) {
+      console.error('Verify OTP error:', error);
+      return { success: false, message: 'Error verifying OTP' };
     }
-    
-    // Mark OTP as used
-    otpDoc.used = true;
-    await otpDoc.save();
-    
-    return { success: true, message: 'OTP verified successfully' };
-  } catch (error) {
-    console.error('Verify OTP error:', error);
-    return { success: false, message: 'Error verifying OTP' };
   }
-};
 
-// Clean up expired OTPs
-const cleanupExpiredOTPs = async () => {
-  try {
-    await OTP.deleteMany({
-      expiresAt: { $lt: new Date() }
-    });
-  } catch (error) {
-    console.error('Cleanup error:', error);
+  // Get stored OTP (for testing)
+  async getStoredOTP(email) {
+    try {
+      const otpData = await OTP.findOne({ email });
+      if (otpData && Date.now() <= otpData.expiresAt) {
+        return otpData.otp;
+      }
+      return null;
+    } catch (error) {
+      console.error('Get stored OTP error:', error);
+      return null;
+    }
   }
-};
 
-// Schedule cleanup every hour
-setInterval(cleanupExpiredOTPs, 60 * 60 * 1000);
+  // Send welcome email
+  async sendWelcomeEmail(email, name) {
+    try {
+      const result = await brevoService.sendWelcomeEmail(email, name);
+      return result;
+    } catch (error) {
+      console.error('Send welcome email error:', error);
+      return { success: false, message: 'Failed to send welcome email' };
+    }
+  }
+}
 
-module.exports = {
-  sendOTP,
-  verifyOTP,
-  generateOTP
-}; 
+module.exports = new OTPService(); 
