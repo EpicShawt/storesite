@@ -1,8 +1,27 @@
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 
-  (window.location.hostname === 'localhost' 
-    ? 'http://localhost:5000' 
-    : 'https://asurwears-backend-production.up.railway.app');
+const getApiBaseUrl = () => {
+  // If environment variable is set, use it
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  
+  // If running locally, use localhost
+  if (window.location.hostname === 'localhost') {
+    return 'http://localhost:5000';
+  }
+  
+  // For production, try different Railway URLs
+  const possibleUrls = [
+    'https://asurwears-backend-production.up.railway.app',
+    'https://asurwears-backend.up.railway.app',
+    'https://asurwears.up.railway.app'
+  ];
+  
+  // For now, return the first one and let the error handling deal with it
+  return possibleUrls[0];
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 export const API_ENDPOINTS = {
   // Auth endpoints

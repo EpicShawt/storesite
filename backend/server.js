@@ -18,9 +18,11 @@ const PORT = process.env.PORT || 5000;
 app.use(helmet());
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://asur-wear.vercel.app', 'https://asurwear.vercel.app']
-    : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002'],
-  credentials: true
+    ? ['https://asur-wear.vercel.app', 'https://asurwear.vercel.app', 'https://asurwearcom.vercel.app', '*']
+    : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://localhost:5173'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -49,7 +51,25 @@ app.use('/api/campaigns', campaignRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Asur Wears API is running' });
+  res.json({ 
+    status: 'OK', 
+    message: 'Asur Wears API is running',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    cors: {
+      origin: process.env.NODE_ENV === 'production' 
+        ? ['https://asur-wear.vercel.app', 'https://asurwear.vercel.app', 'https://asurwearcom.vercel.app']
+        : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://localhost:5173']
+    }
+  });
+});
+
+// Test admin endpoint
+app.get('/api/admin/test', (req, res) => {
+  res.json({ 
+    message: 'Admin API is accessible',
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Error handling middleware
