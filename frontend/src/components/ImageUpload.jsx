@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Camera, Upload, X, Crop, RotateCw, Download } from 'lucide-react';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
@@ -11,9 +11,31 @@ const ImageUpload = ({ onImageUpload, maxSize = 120 * 1024 }) => {
   const [isCropping, setIsCropping] = useState(false);
   const [uploadMethod, setUploadMethod] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [backendStatus, setBackendStatus] = useState('checking');
   const fileInputRef = useRef();
   const videoRef = useRef();
   const canvasRef = useRef();
+
+  // Check backend connectivity on component mount
+  useEffect(() => {
+    const checkBackend = async () => {
+      try {
+        const response = await fetch(`${API_ENDPOINTS.ADMIN_LOGIN.replace('/login', '/test')}`);
+        if (response.ok) {
+          setBackendStatus('connected');
+          console.log('Backend is accessible');
+        } else {
+          setBackendStatus('error');
+          console.error('Backend check failed:', response.status);
+        }
+      } catch (error) {
+        setBackendStatus('error');
+        console.error('Backend connectivity error:', error);
+      }
+    };
+    
+    checkBackend();
+  }, []);
 
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
@@ -120,11 +142,19 @@ const ImageUpload = ({ onImageUpload, maxSize = 120 * 1024 }) => {
       const formData = new FormData();
       formData.append('image', imageBlob, 'product-image.jpg');
 
-      console.log('Attempting upload to:', API_ENDPOINTS.ADMIN_UPLOAD_TEST);
+      // Get admin token
+      const adminToken = localStorage.getItem('adminToken');
+      const uploadUrl = adminToken ? API_ENDPOINTS.ADMIN_UPLOAD : API_ENDPOINTS.ADMIN_UPLOAD_TEST;
 
-      // Try test endpoint first
-      const response = await fetch(API_ENDPOINTS.ADMIN_UPLOAD_TEST, {
+      console.log('Attempting upload to:', uploadUrl);
+      console.log('Admin token present:', !!adminToken);
+
+      // Upload to backend
+      const response = await fetch(uploadUrl, {
         method: 'POST',
+        headers: adminToken ? {
+          'Authorization': `Bearer ${adminToken}`
+        } : {},
         body: formData
       });
 
@@ -170,6 +200,19 @@ const ImageUpload = ({ onImageUpload, maxSize = 120 * 1024 }) => {
 
   return (
     <div className="space-y-4">
+      {/* Backend Status */}
+      <div className={`text-sm p-2 rounded ${
+        backendStatus === 'connected' ? 'bg-green-600 text-white' :
+        backendStatus === 'error' ? 'bg-red-600 text-white' :
+        'bg-yellow-600 text-white'
+      }`}>
+        Backend Status: {
+          backendStatus === 'connected' ? 'Connected' :
+          backendStatus === 'error' ? 'Connection Failed' :
+          'Checking...'
+        }
+      </div>
+
       {/* Upload Methods */}
       {!selectedImage && !uploadMethod && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
