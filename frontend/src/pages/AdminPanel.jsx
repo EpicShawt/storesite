@@ -15,11 +15,14 @@ import {
   User,
   ShoppingCart,
   TrendingUp,
-  FileText
+  FileText,
+  Link as LinkIcon
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import ImageUpload from '../components/ImageUpload'
+import { API_ENDPOINTS } from '../config/api'
 
 const AdminPanel = () => {
   const { user, logout } = useAuth()
@@ -32,27 +35,63 @@ const AdminPanel = () => {
   const [newProduct, setNewProduct] = useState({
     name: '',
     price: '',
+    originalPrice: '',
     description: '',
     category: '',
-    image: '',
-    sizes: ['S', 'M', 'L', 'XL', 'XXL']
+    images: [],
+    sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+    stock: {
+      S: 10,
+      M: 10,
+      L: 10,
+      XL: 10,
+      XXL: 10
+    },
+    productLink: ''
   })
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    // Load data from localStorage
-    const savedProducts = localStorage.getItem('asurwears_products')
-    const savedUsers = localStorage.getItem('asurwears_users')
-    const savedOrders = localStorage.getItem('asurwears_orders')
-    const savedBanner = localStorage.getItem('asurwears_banner')
-    
-    if (savedProducts) setProducts(JSON.parse(savedProducts))
-    if (savedUsers) setUsers(JSON.parse(savedUsers))
-    if (savedOrders) setOrders(JSON.parse(savedOrders))
-    if (savedBanner) setBannerText(savedBanner)
+    fetchProducts()
+    fetchUsers()
+    fetchOrders()
   }, [])
 
-  // Check if user is admin
-  if (!user?.isAdmin) {
+  const fetchProducts = async () => {
+    try {
+      const token = localStorage.getItem('adminToken')
+      const response = await fetch(API_ENDPOINTS.ADMIN_PRODUCTS, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setProducts(data)
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error)
+    }
+  }
+
+  const fetchUsers = async () => {
+    // Mock data for now
+    setUsers([
+      { id: 1, name: 'John Doe', email: 'john@example.com', isAdmin: false },
+      { id: 2, name: 'Jane Smith', email: 'jane@example.com', isAdmin: false }
+    ])
+  }
+
+  const fetchOrders = async () => {
+    // Mock data for now
+    setOrders([
+      { id: 1, customer: 'John Doe', total: 1500, status: 'Completed' },
+      { id: 2, customer: 'Jane Smith', total: 2300, status: 'Pending' }
+    ])
+  }
+
+  // Check if user is admin or manager
+  if (!user?.isAdmin && !user?.isManager) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
         <div className="text-center text-white">
@@ -69,42 +108,94 @@ const AdminPanel = () => {
     )
   }
 
-  const handleAddProduct = () => {
+  const handleImageUpload = (imageUrl) => {
+    setNewProduct(prev => ({
+      ...prev,
+      images: [...prev.images, imageUrl]
+    }))
+    toast.success('Image uploaded successfully!')
+  }
+
+  const handleAddProduct = async () => {
     if (!newProduct.name || !newProduct.price || !newProduct.description) {
       toast.error('Please fill in all required fields')
       return
     }
 
-    const product = {
-      id: Date.now(),
-      ...newProduct,
-      price: parseInt(newProduct.price),
-      rating: 4.5,
-      reviews: Math.floor(Math.random() * 200) + 50,
-      createdAt: new Date().toISOString()
+    if (newProduct.images.length === 0) {
+      toast.error('Please upload at least one image')
+      return
     }
 
-    const updatedProducts = [...products, product]
-    setProducts(updatedProducts)
-    localStorage.setItem('asurwears_products', JSON.stringify(updatedProducts))
-    
-    setNewProduct({
-      name: '',
-      price: '',
-      description: '',
-      category: '',
-      image: '',
-      sizes: ['S', 'M', 'L', 'XL', 'XXL']
-    })
-    
-    toast.success('Product added successfully!')
+    setIsLoading(true)
+    try {
+      const token = localStorage.getItem('adminToken')
+      const response = await fetch(API_ENDPOINTS.ADMIN_PRODUCTS, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          ...newProduct,
+          price: parseFloat(newProduct.price),
+          originalPrice: newProduct.originalPrice ? parseFloat(newProduct.originalPrice) : undefined
+        })
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        toast.success('Product added successfully!')
+        setNewProduct({
+          name: '',
+          price: '',
+          originalPrice: '',
+          description: '',
+          category: '',
+          images: [],
+          sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+          stock: {
+            S: 10,
+            M: 10,
+            L: 10,
+            XL: 10,
+            XXL: 10
+          },
+          productLink: ''
+        })
+        fetchProducts()
+      } else {
+        const error = await response.json()
+        toast.error(error.error || 'Failed to add product')
+      }
+    } catch (error) {
+      console.error('Error adding product:', error)
+      toast.error('Failed to add product')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const handleDeleteProduct = (productId) => {
-    const updatedProducts = products.filter(p => p.id !== productId)
-    setProducts(updatedProducts)
-    localStorage.setItem('asurwears_products', JSON.stringify(updatedProducts))
-    toast.success('Product deleted successfully!')
+  const handleDeleteProduct = async (productId) => {
+    try {
+      const token = localStorage.getItem('adminToken')
+      const response = await fetch(`${API_ENDPOINTS.ADMIN_PRODUCTS}/${productId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        toast.success('Product deleted successfully!')
+        fetchProducts()
+      } else {
+        toast.error('Failed to delete product')
+      }
+    } catch (error) {
+      console.error('Error deleting product:', error)
+      toast.error('Failed to delete product')
+    }
   }
 
   const handleUpdateBanner = () => {
@@ -150,8 +241,12 @@ const AdminPanel = () => {
       <header className="bg-base-200 border-b border-gray-700 p-4">
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-4">
-            <h1 className="text-2xl font-bold text-white">Asur Wear Admin</h1>
-            <span className="text-sm text-gray-400">Welcome, {user?.name}</span>
+            <h1 className="text-2xl font-bold text-white">
+              {user?.isManager ? 'Order Manager Panel' : 'Asur Wear Admin'}
+            </h1>
+            <span className="text-sm text-gray-400">
+              Welcome, {user?.name} ({user?.isManager ? 'Manager' : 'Admin'})
+            </span>
           </div>
           <button
             onClick={handleLogout}
@@ -234,7 +329,7 @@ const AdminPanel = () => {
                       <h3 className="text-lg font-semibold text-white mb-4">Recent Products</h3>
                       <div className="space-y-2">
                         {products.slice(-5).map((product) => (
-                          <div key={product.id} className="flex items-center space-x-3 p-2 bg-base-200 rounded">
+                          <div key={product._id} className="flex items-center space-x-3 p-2 bg-base-200 rounded">
                             <Package className="w-4 h-4 text-blue-500" />
                             <span className="text-white text-sm">{product.name}</span>
                             <span className="text-gray-400 text-xs">₹{product.price}</span>
@@ -275,9 +370,9 @@ const AdminPanel = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {products.map((product) => (
-                      <div key={product.id} className="bg-base-300 p-4 rounded-lg border border-gray-600">
+                      <div key={product._id} className="bg-base-300 p-4 rounded-lg border border-gray-600">
                         <img
-                          src={product.image || 'https://via.placeholder.com/200x200?text=Product'}
+                          src={product.images[0] || 'https://via.placeholder.com/200x200?text=Product'}
                           alt={product.name}
                           className="w-full h-32 object-cover rounded mb-3"
                         />
@@ -286,12 +381,25 @@ const AdminPanel = () => {
                         <div className="flex justify-between items-center">
                           <span className="text-white font-bold">₹{product.price}</span>
                           <button
-                            onClick={() => handleDeleteProduct(product.id)}
+                            onClick={() => handleDeleteProduct(product._id)}
                             className="btn btn-sm bg-red-600 hover:bg-red-700 text-white"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
+                        {user?.isAdmin && product.productLink && (
+                          <div className="mt-2 flex items-center space-x-2">
+                            <LinkIcon className="w-4 h-4 text-blue-500" />
+                            <a 
+                              href={product.productLink} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-500 text-sm hover:underline"
+                            >
+                              View Product Link
+                            </a>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -314,7 +422,7 @@ const AdminPanel = () => {
                   <form onSubmit={(e) => { e.preventDefault(); handleAddProduct(); }} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Product Name</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">Product Name *</label>
                         <input
                           type="text"
                           value={newProduct.name}
@@ -325,7 +433,7 @@ const AdminPanel = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Price (₹)</label>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">Price (₹) *</label>
                         <input
                           type="number"
                           value={newProduct.price}
@@ -337,19 +445,38 @@ const AdminPanel = () => {
                       </div>
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">Category</label>
-                      <input
-                        type="text"
-                        value={newProduct.category}
-                        onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}
-                        className="w-full p-3 bg-base-300 border border-gray-600 rounded-lg text-white"
-                        placeholder="Enter category"
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">Original Price (₹)</label>
+                        <input
+                          type="number"
+                          value={newProduct.originalPrice}
+                          onChange={(e) => setNewProduct({...newProduct, originalPrice: e.target.value})}
+                          className="w-full p-3 bg-base-300 border border-gray-600 rounded-lg text-white"
+                          placeholder="Enter original price (optional)"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">Category *</label>
+                        <select
+                          value={newProduct.category}
+                          onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}
+                          className="w-full p-3 bg-base-300 border border-gray-600 rounded-lg text-white"
+                          required
+                        >
+                          <option value="">Select category</option>
+                          <option value="Harry Potter">Harry Potter</option>
+                          <option value="Tropical">Tropical</option>
+                          <option value="Sweaters">Sweaters</option>
+                          <option value="Vintage">Vintage</option>
+                          <option value="Minimalist">Minimalist</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">Description</label>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Description *</label>
                       <textarea
                         value={newProduct.description}
                         onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
@@ -360,23 +487,62 @@ const AdminPanel = () => {
                       />
                     </div>
 
+                    {user?.isAdmin && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Product Link (Admin Only)
+                        </label>
+                        <input
+                          type="url"
+                          value={newProduct.productLink}
+                          onChange={(e) => setNewProduct({...newProduct, productLink: e.target.value})}
+                          className="w-full p-3 bg-base-300 border border-gray-600 rounded-lg text-white"
+                          placeholder="Enter product link (optional)"
+                        />
+                      </div>
+                    )}
+
                     <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">Image URL</label>
-                      <input
-                        type="url"
-                        value={newProduct.image}
-                        onChange={(e) => setNewProduct({...newProduct, image: e.target.value})}
-                        className="w-full p-3 bg-base-300 border border-gray-600 rounded-lg text-white"
-                        placeholder="Enter image URL"
-                      />
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Product Images *</label>
+                      <ImageUpload onImageUpload={handleImageUpload} />
+                      {newProduct.images.length > 0 && (
+                        <div className="mt-4">
+                          <h4 className="text-sm font-medium text-gray-300 mb-2">Uploaded Images:</h4>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                            {newProduct.images.map((image, index) => (
+                              <div key={index} className="relative">
+                                <img
+                                  src={image}
+                                  alt={`Product ${index + 1}`}
+                                  className="w-full h-20 object-cover rounded"
+                                />
+                                <button
+                                  onClick={() => setNewProduct(prev => ({
+                                    ...prev,
+                                    images: prev.images.filter((_, i) => i !== index)
+                                  }))}
+                                  className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <button
                       type="submit"
-                      className="btn btn-lg bg-white text-black hover:bg-gray-200 w-full"
+                      disabled={isLoading}
+                      className="btn btn-lg bg-white text-black hover:bg-gray-200 w-full disabled:opacity-50"
                     >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Product
+                      {isLoading ? (
+                        <div className="loading loading-spinner loading-sm"></div>
+                      ) : (
+                        <Plus className="w-4 h-4 mr-2" />
+                      )}
+                      {isLoading ? 'Adding Product...' : 'Add Product'}
                     </button>
                   </form>
                 </div>

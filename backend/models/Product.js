@@ -28,6 +28,10 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: true
   }],
+  productLink: {
+    type: String,
+    trim: true
+  },
   sizes: [{
     type: String,
     enum: ['S', 'M', 'L', 'XL', 'XXL'],

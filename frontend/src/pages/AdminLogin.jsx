@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Mail, Lock, ArrowLeft, Shield } from 'lucide-react'
+import { Mail, Lock, ArrowLeft, Shield, User } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import toast from 'react-hot-toast'
+import { API_ENDPOINTS } from '../config/api'
 
 const AdminLogin = () => {
   const [email, setEmail] = useState('')
@@ -22,21 +23,35 @@ const AdminLogin = () => {
 
     setIsLoading(true)
     
-    // Check admin credentials
-    if (email === 'akshat@asurwears.com' && password === 'admin@123') {
-      const adminUser = {
-        email,
-        name: 'Admin',
-        isAdmin: true
+    try {
+      const response = await fetch(API_ENDPOINTS.ADMIN_LOGIN, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        // Store admin token
+        localStorage.setItem('adminToken', data.token)
+        
+        // Login user
+        login(data.user)
+        
+        toast.success(data.message)
+        navigate('/admin')
+      } else {
+        toast.error(data.error || 'Login failed')
       }
-      login(adminUser)
-      toast.success('Admin login successful!')
-      navigate('/admin')
-    } else {
-      toast.error('Invalid admin credentials')
+    } catch (error) {
+      console.error('Admin login error:', error)
+      toast.error('Login failed. Please try again.')
+    } finally {
+      setIsLoading(false)
     }
-    
-    setIsLoading(false)
   }
 
   return (
@@ -71,7 +86,7 @@ const AdminLogin = () => {
           <form onSubmit={handleAdminLogin} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Admin Email
+                Email
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -88,7 +103,7 @@ const AdminLogin = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Admin Password
+                Password
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -111,17 +126,35 @@ const AdminLogin = () => {
               {isLoading ? (
                 <div className="loading loading-spinner loading-sm"></div>
               ) : (
-                'Login as Admin'
+                'Login'
               )}
             </button>
           </form>
 
-          {/* Admin Credentials Hint */}
-          <div className="mt-6 p-4 bg-base-300 rounded-lg border border-gray-600">
-            <h3 className="text-sm font-semibold text-white mb-2">Admin Credentials:</h3>
-            <div className="text-xs text-gray-400 space-y-1">
-              <p><strong>Email:</strong> akshat@asurwears.com</p>
-              <p><strong>Password:</strong> admin@123</p>
+          {/* Login Options */}
+          <div className="mt-6 space-y-4">
+            <div className="p-4 bg-base-300 rounded-lg border border-gray-600">
+              <h3 className="text-sm font-semibold text-white mb-2 flex items-center">
+                <Shield className="w-4 h-4 mr-2" />
+                Admin Access
+              </h3>
+              <div className="text-xs text-gray-400 space-y-1">
+                <p><strong>Email:</strong> akshat@asurwears.com</p>
+                <p><strong>Password:</strong> admin@123</p>
+                <p className="text-blue-400 mt-2">Full access to all features including product links</p>
+              </div>
+            </div>
+
+            <div className="p-4 bg-base-300 rounded-lg border border-gray-600">
+              <h3 className="text-sm font-semibold text-white mb-2 flex items-center">
+                <User className="w-4 h-4 mr-2" />
+                Order Manager Access
+              </h3>
+              <div className="text-xs text-gray-400 space-y-1">
+                <p><strong>Email:</strong> manager@asurwear.com</p>
+                <p><strong>Password:</strong> manager@123</p>
+                <p className="text-green-400 mt-2">Limited access for order management</p>
+              </div>
             </div>
           </div>
 

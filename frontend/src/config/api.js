@@ -14,7 +14,9 @@ export const API_ENDPOINTS = {
   // Admin endpoints
   ADMIN_LOGIN: `${API_BASE_URL}/api/admin/login`,
   ADMIN_PRODUCTS: `${API_BASE_URL}/api/admin/products`,
-  ADMIN_UPLOAD: `${API_BASE_URL}/api/admin/upload`,
+  ADMIN_UPLOAD: `${API_BASE_URL}/api/admin/upload-image`,
+  ADMIN_DASHBOARD: `${API_BASE_URL}/api/admin/dashboard`,
+  ADMIN_BANNER: `${API_BASE_URL}/api/admin/banner`,
   
   // Order endpoints
   ORDERS: `${API_BASE_URL}/api/orders`,
