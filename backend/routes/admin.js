@@ -59,7 +59,7 @@ router.post('/login', async (req, res) => {
 
     // Check for admin credentials (hidden from client)
     const adminCredentials = {
-      'akshat@asurwears.com': 'admin@123',
+      'akshat@asurwear.com': 'admin@123',
       'manager@asurwear.com': 'manager@123'
     };
 

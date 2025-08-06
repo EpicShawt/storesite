@@ -139,7 +139,7 @@ const AdminLogin = () => {
                 Admin Access
               </h3>
               <div className="text-xs text-gray-400 space-y-1">
-                <p><strong>Email:</strong> akshat@asurwears.com</p>
+                <p><strong>Email:</strong> akshat@asurwear.com</p>
                 <p><strong>Password:</strong> admin@123</p>
                 <p className="text-blue-400 mt-2">Full access to all features including product links</p>
               </div>
