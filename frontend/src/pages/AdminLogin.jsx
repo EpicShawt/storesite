@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Mail, Lock, ArrowLeft, Shield, User } from 'lucide-react'
+import { Mail, Lock, ArrowLeft, Shield, User, Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import toast from 'react-hot-toast'
 import { API_ENDPOINTS } from '../config/api'
@@ -9,6 +9,7 @@ import { API_ENDPOINTS } from '../config/api'
 const AdminLogin = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
@@ -24,6 +25,7 @@ const AdminLogin = () => {
     setIsLoading(true)
     
     try {
+      console.log('Attempting login to:', API_ENDPOINTS.ADMIN_LOGIN)
       const response = await fetch(API_ENDPOINTS.ADMIN_LOGIN, {
         method: 'POST',
         headers: {
@@ -33,6 +35,7 @@ const AdminLogin = () => {
       })
 
       const data = await response.json()
+      console.log('Login response:', data)
 
       if (response.ok) {
         // Store admin token
@@ -48,7 +51,7 @@ const AdminLogin = () => {
       }
     } catch (error) {
       console.error('Admin login error:', error)
-      toast.error('Login failed. Please try again.')
+      toast.error('Login failed. Please check your connection and try again.')
     } finally {
       setIsLoading(false)
     }
@@ -108,13 +111,20 @@ const AdminLogin = () => {
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter admin password"
-                  className="w-full pl-10 pr-4 py-3 bg-base-300 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent text-white placeholder-gray-400"
+                  className="w-full pl-10 pr-12 py-3 bg-base-300 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent text-white placeholder-gray-400"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
             </div>
 
@@ -156,6 +166,17 @@ const AdminLogin = () => {
                 <p className="text-green-400 mt-2">Limited access for order management</p>
               </div>
             </div>
+          </div>
+
+          {/* API Status */}
+          <div className="mt-4 p-3 bg-base-300 rounded-lg border border-gray-600">
+            <h4 className="text-xs font-semibold text-gray-300 mb-1">API Status</h4>
+            <p className="text-xs text-gray-400">
+              Backend: {window.location.hostname === 'localhost' ? 'Local' : 'Production'}
+            </p>
+            <p className="text-xs text-gray-400">
+              URL: {API_ENDPOINTS.ADMIN_LOGIN}
+            </p>
           </div>
 
           {/* Regular Login Link */}
