@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { Camera, Upload, X, Crop, RotateCw, Download } from 'lucide-react';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
+import { API_ENDPOINTS } from '../config/api';
 
 const ImageUpload = ({ onImageUpload, maxSize = 120 * 1024 }) => {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -119,16 +120,25 @@ const ImageUpload = ({ onImageUpload, maxSize = 120 * 1024 }) => {
       const formData = new FormData();
       formData.append('image', imageBlob, 'product-image.jpg');
 
-      // Upload to backend
-      const response = await fetch('/api/admin/upload-image', {
+      console.log('Attempting upload to:', API_ENDPOINTS.ADMIN_UPLOAD_TEST);
+
+      // Try test endpoint first
+      const response = await fetch(API_ENDPOINTS.ADMIN_UPLOAD_TEST, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        },
         body: formData
       });
 
+      console.log('Upload response status:', response.status);
+      console.log('Upload response headers:', response.headers);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Upload failed:', errorText);
+        throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
+      }
+
       const result = await response.json();
+      console.log('Upload result:', result);
       
       if (result.success) {
         onImageUpload(result.imageUrl);
@@ -137,11 +147,11 @@ const ImageUpload = ({ onImageUpload, maxSize = 120 * 1024 }) => {
         setCompletedCrop(undefined);
         setIsCropping(false);
       } else {
-        alert(result.error || 'Upload failed');
+        throw new Error(result.error || 'Upload failed');
       }
     } catch (error) {
       console.error('Upload error:', error);
-      alert('Upload failed. Please try again.');
+      alert(`Upload failed: ${error.message}`);
     } finally {
       setIsLoading(false);
     }

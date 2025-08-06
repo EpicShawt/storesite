@@ -16,6 +16,8 @@ const getApiBaseUrl = () => {
 
 const API_BASE_URL = getApiBaseUrl();
 
+console.log('API Base URL:', API_BASE_URL);
+
 export const API_ENDPOINTS = {
   // Auth endpoints
   LOGIN: `${API_BASE_URL}/api/auth/login`,
@@ -30,6 +32,7 @@ export const API_ENDPOINTS = {
   ADMIN_LOGIN: `${API_BASE_URL}/api/admin/login`,
   ADMIN_PRODUCTS: `${API_BASE_URL}/api/admin/products`,
   ADMIN_UPLOAD: `${API_BASE_URL}/api/admin/upload-image`,
+  ADMIN_UPLOAD_TEST: `${API_BASE_URL}/api/admin/upload-image-test`,
   ADMIN_DASHBOARD: `${API_BASE_URL}/api/admin/dashboard`,
   ADMIN_BANNER: `${API_BASE_URL}/api/admin/banner`,
   
