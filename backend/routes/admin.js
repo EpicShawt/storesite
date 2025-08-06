@@ -6,6 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const User = require('../models/User');
 const Product = require('../models/Product');
+const { uploadToCloudinary } = require('../services/cloudinaryService');
 
 const router = express.Router();
 
@@ -130,10 +131,10 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Image upload endpoint with file storage option
-router.post('/upload-image', authenticateAdmin, upload.single('image'), async (req, res) => {
+// Simple image upload endpoint (for testing)
+router.post('/upload-image-test', upload.single('image'), async (req, res) => {
   try {
-    console.log('Image upload request received');
+    console.log('Test image upload request received');
     console.log('Files:', req.file);
     console.log('Headers:', req.headers);
 
@@ -156,6 +157,52 @@ router.post('/upload-image', authenticateAdmin, upload.single('image'), async (r
 
     console.log('Image processed, size:', processedImage.length);
 
+    // Convert to base64 for storage
+    const base64Image = `data:image/jpeg;base64,${processedImage.toString('base64')}`;
+
+    console.log('Image converted to base64, length:', base64Image.length);
+
+    res.json({
+      success: true,
+      imageUrl: base64Image,
+      size: processedImage.length,
+      message: 'Test upload successful'
+    });
+  } catch (error) {
+    console.error('Test image upload error:', error);
+    res.status(500).json({ 
+      error: 'Failed to process image',
+      details: error.message 
+    });
+  }
+});
+
+// Image upload endpoint with Cloudinary storage
+router.post('/upload-image', authenticateAdmin, upload.single('image'), async (req, res) => {
+  try {
+    console.log('Image upload request received');
+    console.log('Files:', req.file);
+    console.log('Headers:', req.headers);
+
+    if (!req.file) {
+      console.log('No file provided');
+      return res.status(400).json({ error: 'No image file provided' });
+    }
+
+    console.log('File details:', {
+      originalname: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size
+    });
+
+    // Process image with sharp (square aspect ratio like Meesho)
+    const processedImage = await sharp(req.file.buffer)
+      .resize(800, 800, { fit: 'cover', position: 'center' })
+      .jpeg({ quality: 80 })
+      .toBuffer();
+
+    console.log('Image processed, size:', processedImage.length);
+
     // Check file size (should be under 120KB)
     if (processedImage.length > 120 * 1024) {
       return res.status(400).json({ 
@@ -163,27 +210,39 @@ router.post('/upload-image', authenticateAdmin, upload.single('image'), async (r
       });
     }
 
-    // Generate unique filename
+    // Upload to Cloudinary
+    const cloudinaryResult = await uploadToCloudinary(processedImage);
+    
+    if (!cloudinaryResult.success) {
+      return res.status(500).json({ 
+        error: 'Failed to upload to cloud storage',
+        details: cloudinaryResult.error 
+      });
+    }
+
+    console.log('Image uploaded to Cloudinary:', cloudinaryResult.url);
+
+    // Also save locally as backup
     const timestamp = Date.now();
     const filename = `product_${timestamp}.jpg`;
     const filepath = path.join(uploadsDir, filename);
-
-    // Save file to local storage
     fs.writeFileSync(filepath, processedImage);
 
     // Convert to base64 for database storage
     const base64Image = `data:image/jpeg;base64,${processedImage.toString('base64')}`;
 
-    console.log('Image saved to:', filepath);
-    console.log('Image converted to base64, length:', base64Image.length);
+    console.log('Image saved locally:', filepath);
 
     res.json({
       success: true,
       imageUrl: base64Image,
-      fileUrl: `/uploads/${filename}`, // URL for local file access
+      cloudinaryUrl: cloudinaryResult.url,
+      publicId: cloudinaryResult.publicId,
+      localUrl: `/uploads/${filename}`,
       size: processedImage.length,
-      message: 'Image uploaded successfully',
+      message: 'Image uploaded successfully to cloud storage',
       storage: {
+        cloudinary: cloudinaryResult.url,
         local: filepath,
         database: 'base64'
       }

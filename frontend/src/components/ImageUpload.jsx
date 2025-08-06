@@ -247,13 +247,16 @@ const ImageUpload = ({ onImageUpload, maxSize = 120 * 1024 }) => {
                 onChange={(c) => setCrop(c)}
                 onComplete={handleCropComplete}
                 aspect={1}
-                minWidth={200}
-                minHeight={200}
+                minWidth={400}
+                minHeight={400}
+                keepSelection={true}
+                className="max-w-full"
               >
                 <img
                   src={selectedImage}
                   alt="Crop preview"
                   className="max-w-full rounded-lg"
+                  style={{ maxHeight: '500px', objectFit: 'contain' }}
                 />
               </ReactCrop>
             ) : (
@@ -261,6 +264,7 @@ const ImageUpload = ({ onImageUpload, maxSize = 120 * 1024 }) => {
                 src={selectedImage}
                 alt="Preview"
                 className="max-w-full rounded-lg"
+                style={{ maxHeight: '500px', objectFit: 'contain' }}
               />
             )}
           </div>
