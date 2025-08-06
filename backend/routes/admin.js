@@ -9,6 +9,12 @@ const Product = require('../models/Product');
 
 const router = express.Router();
 
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 // Configure multer for image upload
 const storage = multer.memoryStorage();
 const upload = multer({
@@ -47,6 +53,20 @@ const authenticateAdmin = (req, res, next) => {
     next();
   });
 };
+
+// Test admin endpoint
+router.get('/test', (req, res) => {
+  res.json({ 
+    message: 'Admin API is accessible',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      login: 'POST /api/admin/login',
+      upload: 'POST /api/admin/upload-image',
+      products: 'GET /api/admin/products',
+      dashboard: 'GET /api/admin/dashboard'
+    }
+  });
+});
 
 // Admin login
 router.post('/login', async (req, res) => {
@@ -110,12 +130,23 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Image upload endpoint
+// Image upload endpoint with file storage option
 router.post('/upload-image', authenticateAdmin, upload.single('image'), async (req, res) => {
   try {
+    console.log('Image upload request received');
+    console.log('Files:', req.file);
+    console.log('Headers:', req.headers);
+
     if (!req.file) {
+      console.log('No file provided');
       return res.status(400).json({ error: 'No image file provided' });
     }
+
+    console.log('File details:', {
+      originalname: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size
+    });
 
     // Process image with sharp
     const processedImage = await sharp(req.file.buffer)
@@ -123,22 +154,46 @@ router.post('/upload-image', authenticateAdmin, upload.single('image'), async (r
       .jpeg({ quality: 80 })
       .toBuffer();
 
+    console.log('Image processed, size:', processedImage.length);
+
     // Check file size (should be under 120KB)
     if (processedImage.length > 120 * 1024) {
-      return res.status(400).json({ error: 'Image size must be under 120KB after compression' });
+      return res.status(400).json({ 
+        error: `Image size (${Math.round(processedImage.length / 1024)}KB) exceeds the maximum allowed size (120KB). Please crop or compress the image.` 
+      });
     }
 
-    // Convert to base64 for storage
+    // Generate unique filename
+    const timestamp = Date.now();
+    const filename = `product_${timestamp}.jpg`;
+    const filepath = path.join(uploadsDir, filename);
+
+    // Save file to local storage
+    fs.writeFileSync(filepath, processedImage);
+
+    // Convert to base64 for database storage
     const base64Image = `data:image/jpeg;base64,${processedImage.toString('base64')}`;
+
+    console.log('Image saved to:', filepath);
+    console.log('Image converted to base64, length:', base64Image.length);
 
     res.json({
       success: true,
       imageUrl: base64Image,
-      size: processedImage.length
+      fileUrl: `/uploads/${filename}`, // URL for local file access
+      size: processedImage.length,
+      message: 'Image uploaded successfully',
+      storage: {
+        local: filepath,
+        database: 'base64'
+      }
     });
   } catch (error) {
     console.error('Image upload error:', error);
-    res.status(500).json({ error: 'Failed to process image' });
+    res.status(500).json({ 
+      error: 'Failed to process image',
+      details: error.message 
+    });
   }
 });
 
