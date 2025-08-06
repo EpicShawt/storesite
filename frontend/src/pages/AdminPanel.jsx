@@ -177,6 +177,13 @@ const AdminPanel = () => {
   }
 
   const handleDeleteProduct = async (productId) => {
+    // Show confirmation dialog
+    const isConfirmed = window.confirm('Are you sure you want to delete this product? This action cannot be undone.');
+    
+    if (!isConfirmed) {
+      return;
+    }
+
     try {
       const token = localStorage.getItem('adminToken')
       const response = await fetch(`${API_ENDPOINTS.ADMIN_PRODUCTS}/${productId}`, {

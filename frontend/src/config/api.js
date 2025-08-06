@@ -10,15 +10,8 @@ const getApiBaseUrl = () => {
     return 'http://localhost:5000';
   }
   
-  // For production, try different Railway URLs
-  const possibleUrls = [
-    'https://asurwears-backend-production.up.railway.app',
-    'https://asurwears-backend.up.railway.app',
-    'https://asurwears.up.railway.app'
-  ];
-  
-  // For now, return the first one and let the error handling deal with it
-  return possibleUrls[0];
+  // For production, use Render backend
+  return 'https://asurwears-backend.onrender.com';
 };
 
 const API_BASE_URL = getApiBaseUrl();

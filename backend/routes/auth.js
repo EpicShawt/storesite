@@ -1,7 +1,6 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { sendOTP, verifyOTP } = require('../services/otpService');
 
 const router = express.Router();
 
@@ -23,78 +22,26 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-// Send OTP
-router.post('/send-otp', async (req, res) => {
+// Simple login without OTP
+router.post('/login', async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, password } = req.body;
 
-    if (!email) {
-      return res.status(400).json({ error: 'Email is required' });
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    const result = await sendOTP(email);
-    
-    if (result.success) {
-      res.json({ message: 'OTP sent successfully to your email' });
-    } else {
-      res.status(500).json({ error: result.message });
-    }
-  } catch (error) {
-    console.error('Send OTP error:', error);
-    res.status(500).json({ error: 'Failed to send OTP' });
-  }
-});
-
-// Get stored OTP (for testing purposes only)
-router.post('/get-otp', async (req, res) => {
-  try {
-    const { email } = req.body;
-
-    if (!email) {
-      return res.status(400).json({ error: 'Email is required' });
-    }
-
-    const otp = await require('../services/otpService').getStoredOTP(email);
-    
-    if (otp) {
-      res.json({ otp });
-    } else {
-      res.status(404).json({ error: 'No OTP found for this email' });
-    }
-  } catch (error) {
-    console.error('Get OTP error:', error);
-    res.status(500).json({ error: 'Failed to get OTP' });
-  }
-});
-
-// Verify OTP and login
-router.post('/verify-otp', async (req, res) => {
-  try {
-    const { email, otp } = req.body;
-
-    if (!email || !otp) {
-      return res.status(400).json({ error: 'Email and OTP are required' });
-    }
-
-    // Verify OTP
-    const otpResult = await verifyOTP(email, otp);
-    
-    if (!otpResult.valid) {
-      return res.status(400).json({ error: otpResult.message });
-    }
-
-    // Find or create user
-    let user = await User.findOne({ email });
+    // Find user
+    const user = await User.findOne({ email });
     
     if (!user) {
-      // Create new user
-      user = new User({
-        name: email.split('@')[0],
-        email,
-        password: 'default_password', // Will be hashed by pre-save hook
-        isAdmin: email === 'akshat@asurwears.com'
-      });
-      await user.save();
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Check password
+    const isPasswordValid = await user.comparePassword(password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     // Generate JWT token
@@ -102,7 +49,8 @@ router.post('/verify-otp', async (req, res) => {
       { 
         userId: user._id, 
         email: user.email, 
-        isAdmin: user.isAdmin 
+        isAdmin: user.isAdmin,
+        isManager: user.isManager
       },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
@@ -115,16 +63,17 @@ router.post('/verify-otp', async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        isAdmin: user.isAdmin
+        isAdmin: user.isAdmin,
+        isManager: user.isManager
       }
     });
   } catch (error) {
-    console.error('Verify OTP error:', error);
-    res.status(500).json({ error: 'Failed to verify OTP' });
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Failed to login' });
   }
 });
 
-// Register user
+// Register user (simple signup)
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -136,7 +85,7 @@ router.post('/register', async (req, res) => {
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ error: 'User already exists' });
+      return res.status(400).json({ error: 'User already exists with this email' });
     }
 
     // Create new user
@@ -144,7 +93,8 @@ router.post('/register', async (req, res) => {
       name,
       email,
       password,
-      isAdmin: email === 'akshat@asurwears.com'
+      isAdmin: false,
+      isManager: false
     });
 
     await user.save();
@@ -154,7 +104,8 @@ router.post('/register', async (req, res) => {
       { 
         userId: user._id, 
         email: user.email, 
-        isAdmin: user.isAdmin 
+        isAdmin: user.isAdmin,
+        isManager: user.isManager
       },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
@@ -167,12 +118,38 @@ router.post('/register', async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        isAdmin: user.isAdmin
+        isAdmin: user.isAdmin,
+        isManager: user.isManager
       }
     });
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({ error: 'Failed to register user' });
+  }
+});
+
+// Forgot password (contact support)
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    // Check if user exists
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ 
+      message: 'Please contact support at support@asurwear.com to reset your password',
+      supportEmail: 'support@asurwear.com'
+    });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ error: 'Failed to process request' });
   }
 });
 
