@@ -9,16 +9,14 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Google Sheets Configuration
 const auth = new google.auth.GoogleAuth({
-  keyFile: 'google-credentials.json', // We'll create this
+  keyFile: 'google-credentials.json',
   scopes: ['https://www.googleapis.com/auth/spreadsheets'],
 });
 
 const sheets = google.sheets({ version: 'v4', auth });
 
-// Google Sheets IDs (we'll create these)
-const PRODUCTS_SHEET_ID = process.env.GOOGLE_SHEETS_PRODUCTS_ID;
-const ORDERS_SHEET_ID = process.env.GOOGLE_SHEETS_ORDERS_ID;
-const USERS_SHEET_ID = process.env.GOOGLE_SHEETS_USERS_ID;
+// Google Sheets ID (single spreadsheet with multiple sheets)
+const SPREADSHEET_ID = process.env.GOOGLE_SHEETS_PRODUCTS_ID; // All sheets use same ID
 
 // Database Functions
 const db = {
@@ -33,9 +31,9 @@ const db = {
 
       if (error) throw error;
 
-      // Add to Google Sheets
+      // Add to Google Sheets - Products sheet
       await sheets.spreadsheets.values.append({
-        spreadsheetId: PRODUCTS_SHEET_ID,
+        spreadsheetId: SPREADSHEET_ID,
         range: 'Products!A:Z',
         valueInputOption: 'RAW',
         insertDataOption: 'INSERT_ROWS',
@@ -79,9 +77,9 @@ const db = {
 
       if (error) throw error;
 
-      // Delete from Google Sheets (mark as deleted)
+      // Add to Google Sheets - DeletedProducts sheet
       await sheets.spreadsheets.values.append({
-        spreadsheetId: PRODUCTS_SHEET_ID,
+        spreadsheetId: SPREADSHEET_ID,
         range: 'DeletedProducts!A:Z',
         valueInputOption: 'RAW',
         insertDataOption: 'INSERT_ROWS',
@@ -108,9 +106,9 @@ const db = {
 
       if (error) throw error;
 
-      // Add to Google Sheets
+      // Add to Google Sheets - Orders sheet
       await sheets.spreadsheets.values.append({
-        spreadsheetId: ORDERS_SHEET_ID,
+        spreadsheetId: SPREADSHEET_ID,
         range: 'Orders!A:Z',
         valueInputOption: 'RAW',
         insertDataOption: 'INSERT_ROWS',
@@ -144,9 +142,9 @@ const db = {
 
       if (error) throw error;
 
-      // Add to Google Sheets
+      // Add to Google Sheets - Users sheet
       await sheets.spreadsheets.values.append({
-        spreadsheetId: USERS_SHEET_ID,
+        spreadsheetId: SPREADSHEET_ID,
         range: 'Users!A:Z',
         valueInputOption: 'RAW',
         insertDataOption: 'INSERT_ROWS',
