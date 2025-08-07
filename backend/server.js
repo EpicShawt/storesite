@@ -52,6 +52,19 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/campaigns', campaignRoutes);
 
+// Root route for testing
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Asur Wears Backend is running!',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      test: '/api/test',
+      health: '/api/health',
+      admin: '/api/admin/test'
+    }
+  });
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ 
