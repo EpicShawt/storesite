@@ -1,14 +1,19 @@
 // API Configuration
 const getApiBaseUrl = () => {
-  // Force use the correct Render URL
+  // Force use the correct Render URL - your actual URL
   const renderUrl = 'https://asurwears-backend.onrender.com';
-  console.log('Using Render API:', renderUrl);
+  console.log('🔧 Using Render API:', renderUrl);
+  console.log('🔧 Environment check:', {
+    VITE_API_URL: import.meta.env.VITE_API_URL,
+    hostname: window.location.hostname,
+    isLocalhost: window.location.hostname === 'localhost'
+  });
   return renderUrl;
 };
 
 const API_BASE_URL = getApiBaseUrl();
 
-console.log('Final API Base URL:', API_BASE_URL);
+console.log('✅ Final API Base URL:', API_BASE_URL);
 
 export const API_ENDPOINTS = {
   // Auth endpoints

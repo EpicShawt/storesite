@@ -1,25 +1,17 @@
 // OTP service that connects to backend API for email delivery
+import { API_ENDPOINTS } from '../config/api';
+
 class OTPService {
   constructor() {
-
-    // Use environment variable or fallback to localhost for development
-    this.apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-    
-    // For production, if no environment variable is set, try to detect the backend URL
-    if (!import.meta.env.VITE_API_URL && window.location.hostname !== 'localhost') {
-      // Try to guess the backend URL based on the frontend URL
-      const hostname = window.location.hostname;
-      if (hostname.includes('vercel.app')) {
-        // If frontend is on Vercel, backend is likely on Railway
-        this.apiBaseUrl = 'https://asurwears-backend.onrender.com/api';
-      }
-    }
+    // Use the same API configuration as the rest of the app
+    this.apiBaseUrl = API_ENDPOINTS.LOGIN.replace('/api/auth/login', '');
+    console.log('🔧 OTP Service API URL:', this.apiBaseUrl);
   }
 
   // Send OTP via backend API
   async sendOTP(email) {
     try {
-      const response = await fetch(`${this.apiBaseUrl}/auth/send-otp`, {
+      const response = await fetch(`${this.apiBaseUrl}/api/auth/send-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -43,7 +35,7 @@ class OTPService {
   // Verify OTP via backend API
   async verifyOTP(email, otp) {
     try {
-      const response = await fetch(`${this.apiBaseUrl}/auth/verify-otp`, {
+      const response = await fetch(`${this.apiBaseUrl}/api/auth/verify-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -56,8 +48,8 @@ class OTPService {
       if (response.ok) {
         // Store the token and user data
         if (data.token) {
-              localStorage.setItem('asurwear_token', data.token);
-    localStorage.setItem('asurwear_user', JSON.stringify(data.user));
+          localStorage.setItem('asurwear_token', data.token);
+          localStorage.setItem('asurwear_user', JSON.stringify(data.user));
         }
         return { success: true, message: data.message || 'OTP verified successfully' };
       } else {
@@ -72,7 +64,7 @@ class OTPService {
   // Get stored OTP (for testing - this will be removed in production)
   async getStoredOTP(email) {
     try {
-      const response = await fetch(`${this.apiBaseUrl}/auth/get-otp`, {
+      const response = await fetch(`${this.apiBaseUrl}/api/auth/get-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
