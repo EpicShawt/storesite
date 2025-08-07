@@ -17,6 +17,7 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(helmet());
+// CORS configuration
 app.use(cors({
   origin: true, // Allow all origins for now
   credentials: true,
@@ -64,11 +65,13 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Simple test endpoint
+// Test endpoint for health check
 app.get('/api/test', (req, res) => {
   res.json({ 
-    message: 'Backend is working!',
-    timestamp: new Date().toISOString()
+    status: 'success', 
+    message: 'Backend is running!',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 

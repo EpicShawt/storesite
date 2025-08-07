@@ -12,9 +12,17 @@ const getApiBaseUrl = () => {
     return 'http://localhost:5000';
   }
   
-  // For production, use Render backend
-  const renderUrl = 'https://asurwears-backend.onrender.com';
+  // For production, try multiple possible Render URLs
+  const possibleUrls = [
+    'https://asurwears-backend.onrender.com',
+    'https://asurwears-backend-production.up.railway.app',
+    'https://asurwears-api.onrender.com'
+  ];
+  
+  // For now, use the first one and log it
+  const renderUrl = possibleUrls[0];
   console.log('Using Render API:', renderUrl);
+  console.log('Available URLs to try:', possibleUrls);
   return renderUrl;
 };
 
