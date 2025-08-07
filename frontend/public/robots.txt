@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://asurwearcom.vercel.app/sitemap.xml 
