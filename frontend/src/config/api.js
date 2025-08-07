@@ -1,18 +1,6 @@
 // API Configuration
 const getApiBaseUrl = () => {
-  // If environment variable is set, use it
-  if (import.meta.env.VITE_API_URL) {
-    console.log('Using VITE_API_URL:', import.meta.env.VITE_API_URL);
-    return import.meta.env.VITE_API_URL;
-  }
-  
-  // If running locally, use localhost
-  if (window.location.hostname === 'localhost') {
-    console.log('Using localhost API');
-    return 'http://localhost:5000';
-  }
-  
-  // For production, use the actual Render URL
+  // Force use the correct Render URL
   const renderUrl = 'https://asurwears-backend.onrender.com';
   console.log('Using Render API:', renderUrl);
   return renderUrl;
