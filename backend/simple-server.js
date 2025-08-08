@@ -45,8 +45,8 @@ app.post('/api/admin/login', (req, res) => {
   
   console.log('Login attempt:', { email, password });
   
-  // Admin credentials
-  if (email === 'akshat@asurwear.com' && password === 'admin123') {
+  // Admin credentials - FIXED TO MATCH FRONTEND
+  if (email === 'akshat@asurwear.com' && password === 'admin@123') {
     res.json({
       success: true,
       message: 'Admin login successful',
