@@ -37,8 +37,15 @@ app.use(helmet());
 app.use(compression());
 app.use(morgan('combined'));
 app.use(mongoSanitize());
+
+// CORS Configuration - Allow frontend domain
 app.use(cors({
-  origin: true,
+  origin: [
+    'https://asurwearcom-six.vercel.app',
+    'https://asurwearcom.vercel.app',
+    'http://localhost:3000',
+    'http://localhost:5173'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
@@ -106,6 +113,7 @@ app.get('/', (req, res) => {
     database: 'MongoDB + Cloudinary',
     uptime: process.uptime(),
     memory: process.memoryUsage(),
+    cors: 'Configured for frontend',
     endpoints: {
       test: '/api/test',
       health: '/api/health',
