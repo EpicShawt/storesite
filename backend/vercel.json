@@ -2,14 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "test-cors.js",
+      "src": "simple-server.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/test-cors.js"
+      "dest": "/simple-server.js"
     }
   ]
 } 
