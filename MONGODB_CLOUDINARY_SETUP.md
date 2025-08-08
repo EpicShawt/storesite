@@ -27,14 +27,14 @@
 1. **Go to "Database Access"**
 2. **Click "Add New Database User"**
 3. **Username**: `asurwears-admin`
-4. **Password**: `asurwears123` (remember this!)
+4. **Password**: `asurwear@123` (remember this!)
 5. **Role**: `Atlas admin`
 6. **Click "Add User"**
 
 ### **1.3 Set Up Network Access**
 1. **Go to "Network Access"**
 2. **Click "Add IP Address"**
-3. **Click "Allow Access from Anywhere"** (for Render deployment)
+3. **Click "Allow Access from Anywhere"** (for Vercel deployment)
 4. **Click "Confirm"**
 
 ### **1.4 Get Connection String**
@@ -46,7 +46,7 @@
 
 **Your MongoDB URI will look like:**
 ```
-mongodb+srv://asurwears-admin:asurwears123@cluster0.abc123.mongodb.net/asurwears?retryWrites=true&w=majority
+mongodb+srv://asurwears-admin:asurwear@123@asurwear.7g07qfk.mongodb.net/asurwears?retryWrites=true&w=majority
 ```
 
 ---
@@ -60,13 +60,13 @@ mongodb+srv://asurwears-admin:asurwears123@cluster0.abc123.mongodb.net/asurwears
 
 ---
 
-## **Step 3: Deploy to Render**
+## **Step 3: Deploy to Vercel**
 
-### **3.1 Update Render Environment Variables**
-In your Render dashboard, update these variables:
+### **3.1 Update Vercel Environment Variables**
+In your Vercel dashboard, update these variables:
 
 ```
-MONGODB_URI=mongodb+srv://asurwears-admin:asurwears123@cluster0.abc123.mongodb.net/asurwears?retryWrites=true&w=majority
+MONGODB_URI=mongodb+srv://asurwears-admin:asurwear@123@asurwear.7g07qfk.mongodb.net/asurwears?retryWrites=true&w=majority
 JWT_SECRET=asurwears-super-secret-jwt-key-2024
 CLOUDINARY_CLOUD_NAME=dqu1xuwye
 CLOUDINARY_API_KEY=754696618625517
@@ -75,17 +75,16 @@ NODE_ENV=production
 ```
 
 ### **3.2 Redeploy Backend**
-1. **Go to your Render service**
-2. **Click "Manual Deploy"**
-3. **Choose "Clear build cache & deploy"**
-4. **Wait for deployment to complete**
+1. **Go to your Vercel service**
+2. **Click "Redeploy"**
+3. **Wait for deployment to complete**
 
 ---
 
 ## **Step 4: Test Everything**
 
 ### **4.1 Test Backend Health**
-Visit: `https://asurwears-backend.onrender.com/`
+Visit: `https://asurwears-backend.vercel.app/`
 Should see:
 ```json
 {
@@ -102,7 +101,7 @@ Should see:
 3. **Check if it appears in the product list**
 
 ### **4.3 Test Analytics**
-Visit: `https://asurwears-backend.onrender.com/api/admin/analytics`
+Visit: `https://asurwears-backend.vercel.app/api/admin/analytics`
 Should see analytics data.
 
 ---
@@ -112,7 +111,7 @@ Should see analytics data.
 ### **✅ 24/7 Reliability**
 - **MongoDB Atlas**: 99.95% uptime SLA
 - **Cloudinary**: Global CDN
-- **Render**: Auto-scaling
+- **Vercel**: Auto-scaling
 
 ### **✅ Performance**
 - **Image Optimization**: Automatic compression
@@ -141,7 +140,7 @@ Should see analytics data.
 ## **📊 Analytics Dashboard**
 
 **Access your analytics at:**
-`https://asurwears-backend.onrender.com/api/admin/analytics`
+`https://asurwears-backend.vercel.app/api/admin/analytics`
 
 **Tracked Metrics:**
 - **Page Views**: Home, Products, Cart, Admin
