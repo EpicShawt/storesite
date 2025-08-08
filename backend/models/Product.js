@@ -6,10 +6,6 @@ const productSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  description: {
-    type: String,
-    required: true
-  },
   price: {
     type: Number,
     required: true,
@@ -22,11 +18,25 @@ const productSchema = new mongoose.Schema({
   category: {
     type: String,
     required: true,
-    enum: ['Harry Potter', 'Tropical', 'Sweaters', 'Vintage', 'Minimalist', 'Other']
+    enum: ['Minimalist', 'Vintage', 'Streetwear', 'Casual', 'Formal', 'Sports']
   },
-  images: [{
+  description: {
     type: String,
     required: true
+  },
+  images: [{
+    url: {
+      type: String,
+      required: true
+    },
+    publicId: {
+      type: String,
+      required: true
+    },
+    cloudinaryUrl: {
+      type: String,
+      required: true
+    }
   }],
   productLink: {
     type: String,
@@ -34,44 +44,31 @@ const productSchema = new mongoose.Schema({
   },
   sizes: [{
     type: String,
-    enum: ['S', 'M', 'L', 'XL', 'XXL'],
-    default: ['S', 'M', 'L', 'XL', 'XXL']
+    enum: ['XS', 'S', 'M', 'L', 'XL', 'XXL']
   }],
-  stock: {
-    S: { type: Number, default: 10 },
-    M: { type: Number, default: 10 },
-    L: { type: Number, default: 10 },
-    XL: { type: Number, default: 10 },
-    XXL: { type: Number, default: 10 }
-  },
-  rating: {
-    type: Number,
-    default: 4.5,
-    min: 0,
-    max: 5
-  },
-  reviews: {
-    type: Number,
-    default: 0
-  },
-  isActive: {
+  inStock: {
     type: Boolean,
     default: true
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
+  featured: {
+    type: Boolean,
+    default: false
   },
-  updatedAt: {
-    type: Date,
-    default: Date.now
+  views: {
+    type: Number,
+    default: 0
+  },
+  sales: {
+    type: Number,
+    default: 0
   }
+}, {
+  timestamps: true
 });
 
-// Update the updatedAt field before saving
-productSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
-});
+// Index for better performance
+productSchema.index({ category: 1, inStock: 1 });
+productSchema.index({ featured: 1 });
+productSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model('Product', productSchema); 
