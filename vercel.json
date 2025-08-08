@@ -34,6 +34,6 @@
     }
   ],
   "env": {
-    "VITE_API_URL": "https://asurwears-backend.vercel.app"
+    "VITE_API_URL": "https://asurwearcom-backend.vercel.app"
   }
 } 

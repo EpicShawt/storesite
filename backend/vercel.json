@@ -11,13 +11,5 @@
       "src": "/(.*)",
       "dest": "/server.js"
     }
-  ],
-  "env": {
-    "MONGODB_URI": "mongodb+srv://asurwears-admin:asurwear@123@asurwear.7g07qfk.mongodb.net/asurwears?retryWrites=true&w=majority",
-    "JWT_SECRET": "asurwears-super-secret-jwt-key-2024",
-    "CLOUDINARY_CLOUD_NAME": "dqu1xuwye",
-    "CLOUDINARY_API_KEY": "754696618625517",
-    "CLOUDINARY_API_SECRET": "1ymxPv746iaQD3B0komsleIEQB4",
-    "NODE_ENV": "production"
-  }
+  ]
 } 

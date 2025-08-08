@@ -1,7 +1,7 @@
 // API Configuration
 const getApiBaseUrl = () => {
-  // Use Vercel backend URL
-  const vercelUrl = 'https://asurwears-backend.vercel.app';
+  // Use Vercel backend URL - update this to your actual backend URL
+  const vercelUrl = 'https://asurwearcom-backend.vercel.app';
   console.log('🔧 Using Vercel API:', vercelUrl);
   console.log('🔧 Environment check:', {
     VITE_API_URL: import.meta.env.VITE_API_URL,
