@@ -1,14 +1,14 @@
 // API Configuration
 const getApiBaseUrl = () => {
-  // Force use the correct Render URL - your actual URL
-  const renderUrl = 'https://asurwears-backend.onrender.com';
-  console.log('🔧 Using Render API:', renderUrl);
+  // Use Vercel backend URL
+  const vercelUrl = 'https://asurwears-backend.vercel.app';
+  console.log('🔧 Using Vercel API:', vercelUrl);
   console.log('🔧 Environment check:', {
     VITE_API_URL: import.meta.env.VITE_API_URL,
     hostname: window.location.hostname,
     isLocalhost: window.location.hostname === 'localhost'
   });
-  return renderUrl;
+  return vercelUrl;
 };
 
 const API_BASE_URL = getApiBaseUrl();
