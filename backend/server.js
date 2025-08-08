@@ -38,18 +38,26 @@ app.use(compression());
 app.use(morgan('combined'));
 app.use(mongoSanitize());
 
-// CORS Configuration - Allow frontend domain
+// CORS Configuration - Allow all origins temporarily
 app.use(cors({
-  origin: [
-    'https://asurwearcom-six.vercel.app',
-    'https://asurwearcom.vercel.app',
-    'http://localhost:3000',
-    'http://localhost:5173'
-  ],
+  origin: true, // Allow all origins
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
+
+// Manual CORS headers for additional security
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
