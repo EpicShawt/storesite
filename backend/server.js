@@ -32,32 +32,27 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/asurwears
 .then(() => console.log('✅ Connected to MongoDB'))
 .catch(err => console.error('❌ MongoDB connection error:', err));
 
-// Middleware
-app.use(helmet());
-app.use(compression());
-app.use(morgan('combined'));
-app.use(mongoSanitize());
-
-// CORS Configuration - Allow all origins temporarily
-app.use(cors({
-  origin: true, // Allow all origins
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}));
-
-// Manual CORS headers for additional security
+// BULLETPROOF CORS CONFIGURATION
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
   
   if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-  } else {
-    next();
+    res.status(200).end();
+    return;
   }
+  next();
 });
+
+// Middleware
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+app.use(compression());
+app.use(morgan('combined'));
+app.use(mongoSanitize());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -121,7 +116,7 @@ app.get('/', (req, res) => {
     database: 'MongoDB + Cloudinary',
     uptime: process.uptime(),
     memory: process.memoryUsage(),
-    cors: 'Configured for frontend',
+    cors: 'BULLETPROOF CORS CONFIGURED',
     endpoints: {
       test: '/api/test',
       health: '/api/health',
