@@ -6,6 +6,8 @@ const rateLimit = require('express-rate-limit');
 const compression = require('compression');
 const morgan = require('morgan');
 const mongoSanitize = require('express-mongo-sanitize');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const path = require('path');
 const multer = require('multer');
 require('dotenv').config();
@@ -109,7 +111,9 @@ app.get('/', (req, res) => {
       health: '/api/health',
       products: '/api/products',
       upload: '/api/admin/upload-image',
-      analytics: '/api/admin/analytics'
+      analytics: '/api/admin/analytics',
+      signup: '/api/auth/signup',
+      login: '/api/auth/login'
     }
   });
 });
@@ -134,6 +138,98 @@ app.get('/api/test', (req, res) => {
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development'
   });
+});
+
+// User Authentication Routes
+app.post('/api/auth/signup', async (req, res) => {
+  try {
+    const { email, password, name } = req.body;
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ error: 'User with this email already exists' });
+    }
+
+    // Hash password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Create new user
+    const user = new User({
+      email,
+      password: hashedPassword,
+      name: name || email.split('@')[0],
+      isAdmin: false,
+      isManager: false
+    });
+
+    await user.save();
+    await analyticsService.trackUserAction('signups');
+
+    res.status(201).json({
+      success: true,
+      message: 'User registered successfully',
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        isAdmin: user.isAdmin,
+        isManager: user.isManager
+      }
+    });
+  } catch (error) {
+    console.error('Signup error:', error);
+    res.status(500).json({ error: 'Registration failed' });
+  }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Find user
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Check password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { 
+        userId: user._id, 
+        email: user.email, 
+        isAdmin: user.isAdmin, 
+        isManager: user.isManager 
+      },
+      process.env.JWT_SECRET || 'fallback-secret',
+      { expiresIn: '24h' }
+    );
+
+    await analyticsService.trackUserAction('logins');
+
+    res.json({
+      success: true,
+      message: 'Login successful',
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        isAdmin: user.isAdmin,
+        isManager: user.isManager
+      }
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Login failed' });
+  }
 });
 
 // Products API
@@ -192,7 +288,7 @@ app.post('/api/admin/login', async (req, res) => {
       const isAdmin = email === 'akshat@asurwear.com';
       const isManager = email === 'manager@asurwear.com';
       
-      const token = require('jsonwebtoken').sign(
+      const token = jwt.sign(
         { email, isAdmin, isManager },
         process.env.JWT_SECRET || 'fallback-secret',
         { expiresIn: '24h' }

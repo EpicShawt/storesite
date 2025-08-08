@@ -1,6 +1,6 @@
 // API Configuration
 const getApiBaseUrl = () => {
-  // Use Vercel backend URL - update this to your actual backend URL
+  // Use your actual backend URL - replace with your backend URL
   const vercelUrl = 'https://asurwearcom-backend.vercel.app';
   console.log('🔧 Using Vercel API:', vercelUrl);
   console.log('🔧 Environment check:', {
@@ -17,8 +17,8 @@ console.log('✅ Final API Base URL:', API_BASE_URL);
 
 export const API_ENDPOINTS = {
   // Auth endpoints
+  SIGNUP: `${API_BASE_URL}/api/auth/signup`,
   LOGIN: `${API_BASE_URL}/api/auth/login`,
-  REGISTER: `${API_BASE_URL}/api/auth/register`,
   VERIFY_OTP: `${API_BASE_URL}/api/auth/verify-otp`,
   
   // Product endpoints
