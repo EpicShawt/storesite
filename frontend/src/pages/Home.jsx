@@ -17,16 +17,29 @@ const Home = () => {
       setLoading(true)
       console.log('🔍 Fetching products for home page from:', API_ENDPOINTS.PRODUCTS)
       
-      const response = await fetch(API_ENDPOINTS.PRODUCTS)
+      // Add cache-busting parameter
+      const url = `${API_ENDPOINTS.PRODUCTS}?t=${Date.now()}`
+      console.log('🔍 Cache-busting URL:', url)
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      })
       const data = await response.json()
       
       console.log('📦 Products fetched for home:', data.length)
+      console.log('📦 Products data:', data)
       
       if (response.ok) {
         // Show first 4 products as featured
         setFeaturedProducts(data.slice(0, 4))
         // Store in localStorage for caching
         localStorage.setItem('asurwear_products', JSON.stringify(data))
+        // Clear any old cached data
+        localStorage.removeItem('asurwears_products')
       } else {
         console.error('❌ Failed to fetch products:', data)
         toast.error('Failed to load products')

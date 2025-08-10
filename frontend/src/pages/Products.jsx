@@ -27,15 +27,28 @@ const Products = () => {
       setLoading(true)
       console.log('🔍 Fetching products from:', API_ENDPOINTS.PRODUCTS)
       
-      const response = await fetch(API_ENDPOINTS.PRODUCTS)
+      // Add cache-busting parameter
+      const url = `${API_ENDPOINTS.PRODUCTS}?t=${Date.now()}`
+      console.log('🔍 Cache-busting URL:', url)
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      })
       const data = await response.json()
       
       console.log('📦 Products fetched:', data.length)
+      console.log('📦 Products data:', data)
       
       if (response.ok) {
         setProducts(data)
         // Store in localStorage for caching
         localStorage.setItem('asurwears_products', JSON.stringify(data))
+        // Clear any old cached data
+        localStorage.removeItem('asurwear_products')
       } else {
         console.error('❌ Failed to fetch products:', data)
         toast.error('Failed to load products')
