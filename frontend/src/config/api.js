@@ -1,19 +1,23 @@
 // API Configuration
 const getApiBaseUrl = () => {
-  // Use your actual backend URL - replace with your backend URL
+  // FORCE USE VERCEL URL - NO RENDER
   const vercelUrl = 'https://asurwearcom-backend.vercel.app';
-  console.log('🔧 Using Vercel API:', vercelUrl);
+  
+  console.log('🔧 FORCING VERCEL URL:', vercelUrl);
   console.log('🔧 Environment check:', {
     VITE_API_URL: import.meta.env.VITE_API_URL,
     hostname: window.location.hostname,
     isLocalhost: window.location.hostname === 'localhost'
   });
+  
+  // Always use Vercel URL, ignore any cached environment variables
   return vercelUrl;
 };
 
 const API_BASE_URL = getApiBaseUrl();
 
 console.log('✅ Final API Base URL:', API_BASE_URL);
+console.log('🚫 NO RENDER - USING VERCEL ONLY');
 
 export const API_ENDPOINTS = {
   // Auth endpoints
