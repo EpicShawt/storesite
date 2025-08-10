@@ -20,6 +20,55 @@ cloudinary.config({
 let products = [];
 let productId = 1;
 
+// Add sample products with images
+const sampleProducts = [
+  {
+    _id: productId++,
+    name: 'Classic White T-Shirt',
+    price: 499,
+    originalPrice: 999,
+    description: 'Premium cotton classic white t-shirt',
+    category: 'Minimalist',
+    images: [{
+      url: 'https://res.cloudinary.com/dqu1xuwye/image/upload/v1754840587/asurwears/sample-tshirt-1.jpg',
+      publicId: 'asurwears/sample-tshirt-1',
+      cloudinaryUrl: 'https://res.cloudinary.com/dqu1xuwye/image/upload/v1754840587/asurwears/sample-tshirt-1.jpg'
+    }],
+    sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+    productLink: '',
+    inStock: true,
+    featured: true,
+    views: 0,
+    sales: 0,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    _id: productId++,
+    name: 'Vintage Black T-Shirt',
+    price: 599,
+    originalPrice: 1199,
+    description: 'Vintage style black t-shirt with retro design',
+    category: 'Vintage',
+    images: [{
+      url: 'https://res.cloudinary.com/dqu1xuwye/image/upload/v1754840587/asurwears/sample-tshirt-2.jpg',
+      publicId: 'asurwears/sample-tshirt-2',
+      cloudinaryUrl: 'https://res.cloudinary.com/dqu1xuwye/image/upload/v1754840587/asurwears/sample-tshirt-2.jpg'
+    }],
+    sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+    productLink: '',
+    inStock: true,
+    featured: true,
+    views: 0,
+    sales: 0,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+];
+
+// Initialize with sample products
+products = [...sampleProducts];
+
 // Multer configuration
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -173,7 +222,7 @@ app.post('/api/admin/products', (req, res) => {
       });
     }
     
-    // Create product object
+    // Create product object with proper image structure
     const product = {
       _id: productId++,
       name: String(name).trim(),
@@ -182,7 +231,7 @@ app.post('/api/admin/products', (req, res) => {
       description: String(description).trim(),
       category: String(category).trim(),
       images: images.map(img => ({
-        url: String(img.url || img.imageUrl || ''),
+        url: String(img.url || img.imageUrl || img.cloudinaryUrl || ''),
         publicId: String(img.publicId || ''),
         cloudinaryUrl: String(img.cloudinaryUrl || img.url || img.imageUrl || '')
       })),
@@ -197,12 +246,14 @@ app.post('/api/admin/products', (req, res) => {
     };
     
     console.log('➕ Cleaned product data:', JSON.stringify(product, null, 2));
+    console.log('➕ Images array:', JSON.stringify(product.images, null, 2));
     
     // Add to products array
     products.push(product);
     
     console.log('✅ Product saved successfully:', product._id);
     console.log('✅ Total products:', products.length);
+    console.log('✅ Product has images:', product.images.length);
     
     res.status(201).json(product);
   } catch (error) {
