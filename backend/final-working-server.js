@@ -18,15 +18,21 @@ cloudinary.config({
 });
 
 // MongoDB Connection
-mongoose.connect('mongodb+srv://asurwears-admin:asurwear@123@asurwear.7g07qfk.mongodb.net/?retryWrites=true&w=majority&appName=asurwear', {
+mongoose.connect('mongodb+srv://asurwears-admin:asurwear@123@asurwear.7g07qfk.mongodb.net/asurwear?retryWrites=true&w=majority', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
 })
 .then(() => {
   console.log('✅ Connected to MongoDB');
+  console.log('Database:', mongoose.connection.db.databaseName);
+  console.log('Host:', mongoose.connection.host);
 })
 .catch(err => {
   console.error('❌ MongoDB connection error:', err);
+  console.error('❌ Error name:', err.name);
+  console.error('❌ Error message:', err.message);
 });
 
 // Flexible Product Schema
@@ -80,11 +86,28 @@ app.use(express.urlencoded({ extended: true }));
 
 // Root endpoint
 app.get('/', (req, res) => {
+  const dbStatus = mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected';
   res.json({ 
     message: 'FINAL WORKING SERVER - Asur Wears Backend',
     status: 'SUCCESS',
     timestamp: new Date().toISOString(),
+    mongodb: dbStatus,
+    database: mongoose.connection.db?.databaseName || 'Unknown',
+    host: mongoose.connection.host || 'Unknown',
     working: true
+  });
+});
+
+// MongoDB status check
+app.get('/api/mongo-status', (req, res) => {
+  const dbStatus = mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected';
+  res.json({ 
+    mongodb: dbStatus,
+    database: mongoose.connection.db?.databaseName || 'Unknown',
+    host: mongoose.connection.host || 'Unknown',
+    port: mongoose.connection.port || 'Unknown',
+    readyState: mongoose.connection.readyState,
+    timestamp: new Date().toISOString()
   });
 });
 
