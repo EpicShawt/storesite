@@ -2,14 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "simple-no-mongo-server.js",
+      "src": "working-mongo-server.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/simple-no-mongo-server.js"
+      "dest": "/working-mongo-server.js"
     }
   ]
 } 
