@@ -1,5 +1,4 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const jwt = require('jsonwebtoken');
@@ -8,7 +7,7 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-console.log('🚀 ULTRA SIMPLE SERVER - Starting...');
+console.log('🚀 SIMPLE WORKING SERVER - Starting...');
 
 // Cloudinary Configuration
 cloudinary.config({
@@ -17,39 +16,9 @@ cloudinary.config({
   api_secret: '1ymxPv746iaQD3B0komsleIEQB4'
 });
 
-// MongoDB Connection
-mongoose.connect('mongodb+srv://asurwears-admin:asurwear@123@asurwear.7g07qfk.mongodb.net/?retryWrites=true&w=majority&appName=asurwear', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => {
-  console.log('✅ Connected to MongoDB');
-})
-.catch(err => {
-  console.error('❌ MongoDB connection error:', err);
-});
-
-// Simple Product Schema
-const productSchema = new mongoose.Schema({
-  name: String,
-  price: Number,
-  originalPrice: Number,
-  description: String,
-  category: String,
-  images: [{
-    url: String,
-    publicId: String,
-    cloudinaryUrl: String
-  }],
-  sizes: [String],
-  productLink: String,
-  inStock: { type: Boolean, default: true },
-  featured: { type: Boolean, default: false }
-}, {
-  timestamps: true
-});
-
-const Product = mongoose.model('Product', productSchema);
+// In-memory storage for products (temporary)
+let products = [];
+let productId = 1;
 
 // Multer configuration
 const upload = multer({
@@ -57,12 +26,13 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 }
 });
 
-// CORS headers
+// CORS headers - FIXED
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma');
   res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Max-Age', '86400');
   
   if (req.method === 'OPTIONS') {
     res.status(200).end();
@@ -77,9 +47,10 @@ app.use(express.urlencoded({ extended: true }));
 // Root endpoint
 app.get('/', (req, res) => {
   res.json({ 
-    message: 'ULTRA SIMPLE SERVER - Asur Wears Backend',
+    message: 'SIMPLE WORKING SERVER - Asur Wears Backend',
     status: 'SUCCESS',
     timestamp: new Date().toISOString(),
+    products: products.length,
     working: true
   });
 });
@@ -88,8 +59,9 @@ app.get('/', (req, res) => {
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
-    message: 'Ultra simple server is healthy',
-    timestamp: new Date().toISOString()
+    message: 'Simple working server is healthy',
+    timestamp: new Date().toISOString(),
+    products: products.length
   });
 });
 
@@ -156,11 +128,11 @@ app.post('/api/admin/upload-image', upload.single('image'), async (req, res) => 
 });
 
 // Get products (for customers)
-app.get('/api/products', async (req, res) => {
+app.get('/api/products', (req, res) => {
   try {
-    const products = await Product.find({ inStock: true }).sort({ createdAt: -1 });
-    console.log('📦 Fetched products for customers:', products.length);
-    res.json(products);
+    const activeProducts = products.filter(p => p.inStock !== false);
+    console.log('📦 Fetched products for customers:', activeProducts.length);
+    res.json(activeProducts);
   } catch (error) {
     console.error('❌ Error fetching products:', error);
     res.status(500).json({ error: 'Failed to fetch products' });
@@ -168,9 +140,8 @@ app.get('/api/products', async (req, res) => {
 });
 
 // Get products (for admin)
-app.get('/api/admin/products', async (req, res) => {
+app.get('/api/admin/products', (req, res) => {
   try {
-    const products = await Product.find().sort({ createdAt: -1 });
     console.log('📦 Admin fetched products:', products.length);
     res.json(products);
   } catch (error) {
@@ -179,41 +150,100 @@ app.get('/api/admin/products', async (req, res) => {
   }
 });
 
-// Add product (admin)
-app.post('/api/admin/products', async (req, res) => {
+// Add product (admin) - SIMPLE VERSION
+app.post('/api/admin/products', (req, res) => {
   try {
-    const productData = req.body;
-    console.log('➕ Adding product:', productData.name);
+    console.log('➕ Received product data:', JSON.stringify(req.body, null, 2));
     
-    const product = new Product(productData);
-    const savedProduct = await product.save();
+    // Validate required fields
+    const { name, price, description, category, images } = req.body;
     
-    console.log('✅ Product saved successfully:', savedProduct._id);
-    res.status(201).json(savedProduct);
+    if (!name || !price || !description || !category) {
+      return res.status(400).json({ 
+        error: 'Missing required fields', 
+        required: ['name', 'price', 'description', 'category'],
+        received: { name, price, description, category }
+      });
+    }
+    
+    if (!images || !Array.isArray(images) || images.length === 0) {
+      return res.status(400).json({ 
+        error: 'At least one image is required',
+        received: images
+      });
+    }
+    
+    // Create product object
+    const product = {
+      _id: productId++,
+      name: String(name).trim(),
+      price: Number(price),
+      originalPrice: req.body.originalPrice ? Number(req.body.originalPrice) : 0,
+      description: String(description).trim(),
+      category: String(category).trim(),
+      images: images.map(img => ({
+        url: String(img.url || img.imageUrl || ''),
+        publicId: String(img.publicId || ''),
+        cloudinaryUrl: String(img.cloudinaryUrl || img.url || img.imageUrl || '')
+      })),
+      sizes: req.body.sizes || ['S', 'M', 'L', 'XL', 'XXL'],
+      productLink: req.body.productLink || '',
+      inStock: req.body.inStock !== false,
+      featured: req.body.featured === true,
+      views: 0,
+      sales: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    console.log('➕ Cleaned product data:', JSON.stringify(product, null, 2));
+    
+    // Add to products array
+    products.push(product);
+    
+    console.log('✅ Product saved successfully:', product._id);
+    console.log('✅ Total products:', products.length);
+    
+    res.status(201).json(product);
   } catch (error) {
     console.error('❌ Error adding product:', error);
-    res.status(500).json({ error: 'Failed to add product', details: error.message });
+    console.error('❌ Error details:', error.message);
+    console.error('❌ Error stack:', error.stack);
+    
+    res.status(500).json({ 
+      error: 'Failed to add product', 
+      details: error.message,
+      stack: error.stack
+    });
   }
 });
 
 // Delete product (admin)
-app.delete('/api/admin/products/:id', async (req, res) => {
+app.delete('/api/admin/products/:id', (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
-    if (product) {
-      // Delete images from Cloudinary
-      for (const image of product.images) {
-        try {
-          await cloudinary.uploader.destroy(image.publicId);
-          console.log('🗑️ Deleted image:', image.publicId);
-        } catch (cloudinaryError) {
-          console.error('❌ Error deleting from Cloudinary:', cloudinaryError);
-        }
+    const productId = parseInt(req.params.id);
+    const productIndex = products.findIndex(p => p._id === productId);
+    
+    if (productIndex === -1) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    
+    const product = products[productIndex];
+    
+    // Delete images from Cloudinary
+    for (const image of product.images) {
+      try {
+        cloudinary.uploader.destroy(image.publicId);
+        console.log('🗑️ Deleted image:', image.publicId);
+      } catch (cloudinaryError) {
+        console.error('❌ Error deleting from Cloudinary:', cloudinaryError);
       }
     }
     
-    await Product.findByIdAndDelete(req.params.id);
-    console.log('🗑️ Product deleted:', req.params.id);
+    // Remove from products array
+    products.splice(productIndex, 1);
+    
+    console.log('🗑️ Product deleted:', productId);
     res.json({ success: true, message: 'Product deleted successfully' });
   } catch (error) {
     console.error('❌ Error deleting product:', error);
@@ -224,8 +254,9 @@ app.delete('/api/admin/products/:id', async (req, res) => {
 // Test endpoint
 app.get('/api/test', (req, res) => {
   res.json({ 
-    message: 'Ultra simple server is working!',
-    timestamp: new Date().toISOString()
+    message: 'Simple working server is working!',
+    timestamp: new Date().toISOString(),
+    products: products.length
   });
 });
 
@@ -233,13 +264,15 @@ app.get('/api/test', (req, res) => {
 app.get('/api/admin/test', (req, res) => {
   res.json({ 
     message: 'Admin test endpoint working!',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    products: products.length
   });
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Ultra Simple Server running on port ${PORT}`);
+  console.log(`🚀 Simple Working Server running on port ${PORT}`);
   console.log('✅ Ready to accept requests');
+  console.log('📦 Products stored in memory');
 });
 
 module.exports = app; 
