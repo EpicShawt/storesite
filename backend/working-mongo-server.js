@@ -18,15 +18,13 @@ cloudinary.config({
 });
 
 // MongoDB Connection String
-const mongoUri = 'mongodb+srv://asurwears-admin:asurwear@123@asurwear.7g07qfk.mongodb.net/asurwear?retryWrites=true&w=majority';
+const mongoUri = 'mongodb+srv://asurwears-admin:asurwear%40123@asurwear.7g07qfk.mongodb.net/asurwear?retryWrites=true&w=majority';
 
 console.log('🔍 Connecting to MongoDB...');
 console.log('🔍 URI:', mongoUri.replace(/\/\/.*@/, '//***:***@')); // Hide credentials
 
 // MongoDB Connection with proper error handling
 mongoose.connect(mongoUri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
   serverSelectionTimeoutMS: 10000,
   socketTimeoutMS: 45000,
   bufferCommands: false,
