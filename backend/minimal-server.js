@@ -1,6 +1,5 @@
 const express = require('express');
 const app = express();
-const PORT = 5000;
 
 // CORS headers
 app.use((req, res, next) => {
@@ -18,7 +17,7 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
-// Sample products data
+// The 5 products with all details
 const products = [
   {
     _id: 1,
@@ -125,9 +124,10 @@ const products = [
 // Root endpoint
 app.get('/', (req, res) => {
   res.json({ 
-    message: 'TEST SERVER - Asur Wears Backend',
+    message: 'MINIMAL SERVER - Asur Wears Backend',
     status: 'SUCCESS',
-    products: products.length
+    products: products.length,
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -164,9 +164,21 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Test endpoint
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    message: 'Minimal server is working!',
+    timestamp: new Date().toISOString(),
+    products: products.length
+  });
+});
+
 // Start server
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Test Server running on port ${PORT}`);
+  console.log(`🚀 Minimal Server running on port ${PORT}`);
   console.log(`📦 Loaded ${products.length} products`);
   console.log(`🌐 Test URL: http://localhost:${PORT}/api/products`);
-}); 
+});
+
+module.exports = app;
