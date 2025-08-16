@@ -1,14 +1,23 @@
 // API Configuration
 const getApiBaseUrl = () => {
-  // Use environment variable if available, otherwise fallback to backend URL
-  const backendUrl = import.meta.env.VITE_API_URL || 'https://asurwearcom-backend.vercel.app';
+  // Check if we're in development or production
+  const isDevelopment = import.meta.env.DEV;
+  
+  // Use environment variable if available, otherwise use appropriate fallback
+  let backendUrl = import.meta.env.VITE_API_URL;
+  
+  if (!backendUrl) {
+    // Fallback URLs based on environment
+    if (isDevelopment) {
+      backendUrl = 'http://localhost:5000';
+    } else {
+      backendUrl = 'https://asurwearcom-backend.vercel.app';
+    }
+  }
 
+  console.log('🔧 Environment:', isDevelopment ? 'Development' : 'Production');
   console.log('🔧 API URL:', backendUrl);
-  console.log('🔧 Environment check:', {
-    VITE_API_URL: import.meta.env.VITE_API_URL,
-    hostname: window.location.hostname,
-    isLocalhost: window.location.hostname === 'localhost'
-  });
+  console.log('🔧 VITE_API_URL from env:', import.meta.env.VITE_API_URL);
 
   return backendUrl;
 };
