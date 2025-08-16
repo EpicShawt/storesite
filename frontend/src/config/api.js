@@ -18,6 +18,7 @@ const getApiBaseUrl = () => {
   console.log('🔧 Environment:', isDevelopment ? 'Development' : 'Production');
   console.log('🔧 API URL:', backendUrl);
   console.log('🔧 VITE_API_URL from env:', import.meta.env.VITE_API_URL);
+  console.log('🔧 Current hostname:', window.location.hostname);
 
   return backendUrl;
 };
@@ -25,6 +26,23 @@ const getApiBaseUrl = () => {
 const API_BASE_URL = getApiBaseUrl();
 
 console.log('✅ Final API Base URL:', API_BASE_URL);
+
+// Test API connection
+const testApiConnection = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/products`);
+    if (response.ok) {
+      console.log('✅ API connection successful');
+    } else {
+      console.error('❌ API connection failed:', response.status, response.statusText);
+    }
+  } catch (error) {
+    console.error('❌ API connection error:', error);
+  }
+};
+
+// Test connection on load
+testApiConnection();
 
 export const API_ENDPOINTS = {
   // Auth endpoints

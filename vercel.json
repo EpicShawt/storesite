@@ -35,5 +35,10 @@
   ],
   "env": {
     "VITE_API_URL": "https://asurwearcom-backend.vercel.app"
+  },
+  "functions": {
+    "api/**/*.js": {
+      "maxDuration": 30
+    }
   }
 } 
