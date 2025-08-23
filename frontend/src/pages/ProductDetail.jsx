@@ -76,7 +76,7 @@ const ProductDetail = () => {
         {/* Back Button */}
         <Link
           to="/products"
-          className="inline-flex items-center text-gray-600 hover:text-primary mb-6"
+          className="inline-flex items-center text-amber-100 hover:text-amber-300 mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Products
@@ -130,7 +130,7 @@ const ProductDetail = () => {
             </div>
 
             {/* Product Title */}
-            <h1 className="text-3xl font-bold text-gray-900">{product.name}</h1>
+            <h1 className="text-3xl font-bold text-amber-50 drop-shadow-sm">{product.name}</h1>
 
             {/* Rating */}
             <div className="flex items-center space-x-2">
@@ -141,19 +141,19 @@ const ProductDetail = () => {
                     className={`w-5 h-5 ${
                       i < Math.floor(product.rating)
                         ? 'text-yellow-500 fill-current'
-                        : 'text-gray-300'
+                        : 'text-gray-400'
                     }`}
                   />
                 ))}
               </div>
-              <span className="text-gray-600">({product.reviews} reviews)</span>
+              <span className="text-amber-100">({product.reviews} reviews)</span>
             </div>
 
             {/* Price */}
             <div className="flex items-center space-x-4">
-              <span className="text-3xl font-bold text-primary">₹{product.price}</span>
+              <span className="text-3xl font-bold text-amber-300">₹{product.price}</span>
               {product.originalPrice && (
-                <span className="text-xl text-gray-500 line-through">
+                <span className="text-xl text-gray-400 line-through">
                   ₹{product.originalPrice}
                 </span>
               )}
@@ -161,13 +161,13 @@ const ProductDetail = () => {
 
             {/* Description */}
             <div>
-              <h3 className="text-lg font-semibold mb-2">Description</h3>
-              <p className="text-gray-600 leading-relaxed">{product.description}</p>
+              <h3 className="text-lg font-semibold mb-2 text-amber-50">Description</h3>
+              <p className="text-amber-100 leading-relaxed">{product.description}</p>
             </div>
 
             {/* Size Selection */}
             <div>
-              <h3 className="text-lg font-semibold mb-3">Select Size</h3>
+              <h3 className="text-lg font-semibold mb-3 text-amber-50">Select Size</h3>
               <div className="flex space-x-2">
                 {sizes.map((size) => (
                   <button
@@ -175,8 +175,8 @@ const ProductDetail = () => {
                     onClick={() => setSelectedSize(size)}
                     className={`px-4 py-2 border rounded-lg transition-colors ${
                       selectedSize === size
-                        ? 'bg-primary text-primary-content border-primary'
-                        : 'border-gray-300 hover:border-primary'
+                        ? 'bg-amber-300 text-gray-900 border-amber-300'
+                        : 'border-amber-200 text-amber-100 hover:border-amber-300 hover:text-amber-50'
                     }`}
                   >
                     {size}
@@ -187,20 +187,20 @@ const ProductDetail = () => {
 
             {/* Quantity */}
             <div>
-              <h3 className="text-lg font-semibold mb-3">Quantity</h3>
+              <h3 className="text-lg font-semibold mb-3 text-amber-50">Quantity</h3>
               <div className="flex items-center space-x-4">
                 <button
                   onClick={() => handleQuantityChange(quantity - 1)}
                   disabled={quantity <= 1}
-                  className="btn btn-circle btn-outline btn-sm"
+                  className="btn btn-circle btn-outline btn-sm border-amber-200 text-amber-100 hover:border-amber-300 hover:text-amber-50"
                 >
                   -
                 </button>
-                <span className="text-xl font-semibold w-12 text-center">{quantity}</span>
+                <span className="text-xl font-semibold w-12 text-center text-amber-50">{quantity}</span>
                 <button
                   onClick={() => handleQuantityChange(quantity + 1)}
                   disabled={quantity >= 10}
-                  className="btn btn-circle btn-outline btn-sm"
+                  className="btn btn-circle btn-outline btn-sm border-amber-200 text-amber-100 hover:border-amber-300 hover:text-amber-50"
                 >
                   +
                 </button>
@@ -211,23 +211,23 @@ const ProductDetail = () => {
             <div className="flex space-x-4">
               <button
                 onClick={handleAddToCart}
-                className="flex-1 btn btn-primary btn-lg"
+                className="flex-1 btn btn-lg bg-amber-300 text-gray-900 hover:bg-amber-400 border-amber-300"
               >
                 <ShoppingCart className="w-5 h-5 mr-2" />
                 Add to Cart
               </button>
-              <button className="btn btn-outline btn-circle btn-lg">
+              <button className="btn btn-outline btn-circle btn-lg border-amber-200 text-amber-100 hover:border-amber-300 hover:text-amber-50">
                 <Heart className="w-5 h-5" />
               </button>
-              <button className="btn btn-outline btn-circle btn-lg">
+              <button className="btn btn-outline btn-circle btn-lg border-amber-200 text-amber-100 hover:border-amber-300 hover:text-amber-50">
                 <Share2 className="w-5 h-5" />
               </button>
             </div>
 
             {/* Product Details */}
-            <div className="border-t pt-6">
-              <h3 className="text-lg font-semibold mb-4">Product Details</h3>
-              <div className="space-y-2 text-sm text-gray-600">
+            <div className="border-t border-amber-200 pt-6">
+              <h3 className="text-lg font-semibold mb-4 text-amber-50">Product Details</h3>
+              <div className="space-y-2 text-sm text-amber-100">
                 <div className="flex justify-between">
                   <span>Material:</span>
                   <span>100% Cotton</span>
