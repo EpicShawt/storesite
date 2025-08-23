@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, MapPin } from 'lucide-react'
 import { useCart } from '../contexts/CartContext'
@@ -11,6 +11,7 @@ const Cart = () => {
   const { user } = useAuth()
   const [couponInput, setCouponInput] = useState('')
   const [pincode, setPincode] = useState('')
+  const navigate = useNavigate()
 
   const handleApplyCoupon = () => {
     if (couponInput.trim()) {
@@ -213,20 +214,14 @@ const Cart = () => {
               </div>
 
               {/* Checkout Button */}
-              <button
-                onClick={handleCheckout}
-                disabled={!user}
-                className="w-full btn btn-primary btn-lg"
-              >
-                {user ? (
-                  <>
-                    Proceed to Checkout
-                    <ArrowRight className="w-5 h-5" />
-                  </>
-                ) : (
-                  'Login to Checkout'
-                )}
-              </button>
+              <div className="mt-6">
+                <button
+                  onClick={() => navigate('/checkout')}
+                  className="w-full btn btn-primary btn-lg"
+                >
+                  Proceed to Checkout
+                </button>
+              </div>
 
               {!user && (
                 <p className="text-sm text-gray-600 mt-2 text-center">

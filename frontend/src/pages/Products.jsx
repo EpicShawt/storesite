@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Filter, Grid, List, Search, Star } from 'lucide-react'
 import ProductCard from '../components/ProductCard'
-import { getProducts } from '../data/products'
+import { API_ENDPOINTS } from '../config/api'
 import toast from 'react-hot-toast'
 
 const Products = () => {
@@ -21,24 +21,127 @@ const Products = () => {
 
   const searchQuery = searchParams.get('search') || ''
 
-  // Load products from local data
-  const loadProducts = () => {
+  // Load products from backend API
+  const loadProducts = async () => {
     try {
       setLoading(true)
-      console.log('📦 Loading products from local data...')
+      console.log('📦 Loading products from backend API...')
       
-      const localProducts = getProducts()
-      console.log('📦 Products loaded:', localProducts.length)
-      console.log('📦 Products data:', localProducts)
+      const response = await fetch(API_ENDPOINTS.PRODUCTS)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
       
-      setProducts(localProducts)
+      const data = await response.json()
+      console.log('📦 Products loaded from API:', data.length)
+      
+      setProducts(data)
       
       // Store in localStorage for caching
-      localStorage.setItem('asurwears_products', JSON.stringify(localProducts))
+      localStorage.setItem('asurwears_products', JSON.stringify(data))
       
     } catch (error) {
       console.error('❌ Error loading products:', error)
-      toast.error('Failed to load products')
+      
+      // Fallback to local data if API fails
+      console.log('🔄 Falling back to local data...')
+      const localProducts = [
+        {
+          _id: 1,
+          name: "Dark Knight Vibes - Trendy Batman T-Shirt",
+          price: 399,
+          originalPrice: 999,
+          category: "Streetwear",
+          description: "Embrace the night with our iconic Batman-inspired t-shirt!",
+          images: [{
+            url: "/products/prodimgs/prod1.jpeg",
+            publicId: "prod1_batman_tshirt",
+            cloudinaryUrl: "/products/prodimgs/prod1.jpeg"
+          }],
+          sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+          inStock: true,
+          featured: true,
+          rating: 4.5,
+          reviews: 23
+        },
+        {
+          _id: 2,
+          name: "Sharingan Master - Itachi Uchiha Anime T-Shirt",
+          price: 299,
+          originalPrice: 799,
+          category: "Streetwear",
+          description: "Channel the power of the Uchiha clan with our stunning Itachi Uchiha anime t-shirt!",
+          images: [{
+            url: "/products/prodimgs/prod2.jpeg",
+            publicId: "prod2_itachi_tshirt",
+            cloudinaryUrl: "/products/prodimgs/prod2.jpeg"
+          }],
+          sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+          inStock: true,
+          featured: true,
+          rating: 4.8,
+          reviews: 45
+        },
+        {
+          _id: 3,
+          name: "Urban Canvas - Trendy Printed T-Shirt",
+          price: 349,
+          originalPrice: 699,
+          category: "Casual",
+          description: "Express yourself with our versatile trendy printed t-shirt!",
+          images: [{
+            url: "/products/prodimgs/prod3.jpeg",
+            publicId: "prod3_trendy_printed_tshirt",
+            cloudinaryUrl: "/products/prodimgs/prod3.jpeg"
+          }],
+          sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+          inStock: true,
+          featured: false,
+          rating: 4.3,
+          reviews: 18
+        },
+        {
+          _id: 4,
+          name: "Legendary Asur - Iconic Special Edition T-Shirt",
+          price: 399,
+          originalPrice: 1299,
+          category: "Streetwear",
+          description: "🔥 LIMITED EDITION - The Iconic Asur T-Shirt! 🔥",
+          images: [{
+            url: "/products/prodimgs/prod4.jpeg",
+            publicId: "prod4_asur_iconic_tshirt",
+            cloudinaryUrl: "/products/prodimgs/prod4.jpeg"
+          }],
+          sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+          inStock: true,
+          featured: true,
+          rating: 4.9,
+          reviews: 67
+        },
+        {
+          _id: 5,
+          name: "Money Moves - New Gen Money T-Shirt",
+          price: 299,
+          originalPrice: 899,
+          category: "Streetwear",
+          description: "💰 Make your money moves with our New Gen Money T-Shirt! 💰",
+          images: [{
+            url: "/products/prodimgs/prod5.jpeg",
+            publicId: "prod5_money_tshirt",
+            cloudinaryUrl: "/products/prodimgs/prod5.jpeg"
+          }],
+          sizes: ['S', 'M', 'L', 'XL', 'XXL'],
+          inStock: true,
+          featured: false,
+          rating: 4.6,
+          reviews: 34
+        }
+      ]
+      
+      setProducts(localProducts)
+      localStorage.setItem('asurwears_products', JSON.stringify(localProducts))
+      toast.error('Failed to load products from server. Using cached data.')
+      
     } finally {
       setLoading(false)
     }

@@ -6,7 +6,9 @@ const path = require('path');
 const fs = require('fs');
 const User = require('../models/User');
 const Product = require('../models/Product');
+const Order = require('../models/Order'); // Added Order model
 const { uploadToCloudinary } = require('../services/cloudinaryService');
+const bcrypt = require('bcryptjs'); // Added bcrypt for password hashing
 
 const router = express.Router();
 
@@ -72,30 +74,28 @@ router.get('/test', (req, res) => {
 // Admin login
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Username and password are required' });
     }
 
-    // Check for admin credentials (hidden from client)
+    // Secure admin credentials (hidden from client)
     const adminCredentials = {
-      'akshat@asurwear.com': 'admin@123',
-      'manager@asurwear.com': 'manager@123'
+      'akshat': 'akshat'
     };
 
-    if (adminCredentials[email] && adminCredentials[email] === password) {
-      // Find or create admin/manager user
-      let adminUser = await User.findOne({ email });
+    if (adminCredentials[username] && adminCredentials[username] === password) {
+      // Find or create admin user
+      let adminUser = await User.findOne({ email: 'akshat@asurwears.com' });
       
       if (!adminUser) {
-        const isManager = email === 'manager@asurwear.com';
         adminUser = new User({
-          name: isManager ? 'Order Manager' : 'Akshat',
-          email: email,
-          password: password,
-          isAdmin: !isManager,
-          isManager: isManager
+          name: 'Akshat',
+          email: 'akshat@asurwears.com',
+          password: await bcrypt.hash(password, 12),
+          isAdmin: true,
+          isManager: false
         });
         await adminUser.save();
       }
@@ -256,29 +256,202 @@ router.post('/upload-image', authenticateAdmin, upload.single('image'), async (r
   }
 });
 
-// Get dashboard stats
+// Get dashboard stats with real data
 router.get('/dashboard', authenticateAdmin, async (req, res) => {
   try {
+    // Basic stats
     const totalProducts = await Product.countDocuments();
     const totalUsers = await User.countDocuments({ isAdmin: false, isManager: false });
-    const activeProducts = await Product.countDocuments({ isActive: true });
+    const activeProducts = await Product.countDocuments({ inStock: true });
     
-    // Mock sales data (in real app, this would come from orders)
-    const totalSales = 24500;
-    const totalOrders = 156;
+    // Order statistics
+    const totalOrders = await Order.countDocuments();
+    const pendingOrders = await Order.countDocuments({ status: 'pending' });
+    const confirmedOrders = await Order.countDocuments({ status: 'confirmed' });
+    const processingOrders = await Order.countDocuments({ status: 'processing' });
+    const shippedOrders = await Order.countDocuments({ status: 'shipped' });
+    const deliveredOrders = await Order.countDocuments({ status: 'delivered' });
+    const cancelledOrders = await Order.countDocuments({ status: 'cancelled' });
+    
+    // Sales analytics
+    const totalSales = await Order.aggregate([
+      { $match: { status: { $ne: 'cancelled' } } },
+      { $group: { _id: null, total: { $sum: '$totalAmount' } } }
+    ]);
+    
+    const monthlySales = await Order.aggregate([
+      { $match: { status: { $ne: 'cancelled' } } },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' }
+          },
+          total: { $sum: '$totalAmount' },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { '_id.year': -1, '_id.month': -1 } },
+      { $limit: 6 }
+    ]);
+    
+    // Recent orders
+    const recentOrders = await Order.find()
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .populate('items.product', 'name images');
+    
+    // Top selling products
+    const topProducts = await Order.aggregate([
+      { $unwind: '$items' },
+      { $match: { status: { $ne: 'cancelled' } } },
+      {
+        $group: {
+          _id: '$items.product',
+          totalSold: { $sum: '$items.quantity' },
+          totalRevenue: { $sum: { $multiply: ['$items.price', '$items.quantity'] } }
+        }
+      },
+      { $sort: { totalSold: -1 } },
+      { $limit: 5 },
+      {
+        $lookup: {
+          from: 'products',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'product'
+        }
+      },
+      { $unwind: '$product' }
+    ]);
+    
+    // Customer insights
+    const totalCustomers = await Order.distinct('customer.phone').length;
+    const repeatCustomers = await Order.aggregate([
+      {
+        $group: {
+          _id: '$customer.phone',
+          orderCount: { $sum: 1 }
+        }
+      },
+      { $match: { orderCount: { $gt: 1 } } },
+      { $count: 'count' }
+    ]);
     
     res.json({
       stats: {
         totalProducts,
         totalUsers,
         activeProducts,
-        totalSales,
-        totalOrders
+        totalOrders,
+        pendingOrders,
+        confirmedOrders,
+        processingOrders,
+        shippedOrders,
+        deliveredOrders,
+        cancelledOrders,
+        totalSales: totalSales[0]?.total || 0,
+        totalCustomers,
+        repeatCustomers: repeatCustomers[0]?.count || 0
+      },
+      analytics: {
+        monthlySales,
+        topProducts,
+        recentOrders
       }
     });
   } catch (error) {
     console.error('Dashboard stats error:', error);
     res.status(500).json({ error: 'Failed to fetch dashboard stats' });
+  }
+});
+
+// Get all orders for admin
+router.get('/orders', authenticateAdmin, async (req, res) => {
+  try {
+    const { page = 1, limit = 20, status, search } = req.query;
+    const skip = (page - 1) * limit;
+    
+    let query = {};
+    
+    if (status && status !== 'all') {
+      query.status = status;
+    }
+    
+    if (search) {
+      query.$or = [
+        { 'customer.name': { $regex: search, $options: 'i' } },
+        { 'customer.phone': { $regex: search, $options: 'i' } },
+        { 'customer.email': { $regex: search, $options: 'i' } },
+        { orderNumber: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    const orders = await Order.find(query)
+      .populate('items.product', 'name images price')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+    
+    const total = await Order.countDocuments(query);
+    
+    res.json({
+      orders,
+      pagination: {
+        current: parseInt(page),
+        total: Math.ceil(total / limit),
+        totalOrders: total
+      }
+    });
+  } catch (error) {
+    console.error('Get admin orders error:', error);
+    res.status(500).json({ error: 'Failed to fetch orders' });
+  }
+});
+
+// Update order status
+router.put('/orders/:id/status', authenticateAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, notes } = req.body;
+    
+    const order = await Order.findByIdAndUpdate(
+      id, 
+      { 
+        status,
+        notes: notes || undefined,
+        estimatedDelivery: status === 'shipped' ? new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) : undefined
+      },
+      { new: true }
+    ).populate('items.product', 'name images price');
+    
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    
+    res.json({ message: 'Order status updated successfully', order });
+  } catch (error) {
+    console.error('Update order status error:', error);
+    res.status(500).json({ error: 'Failed to update order status' });
+  }
+});
+
+// Get order details
+router.get('/orders/:id', authenticateAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const order = await Order.findById(id)
+      .populate('items.product', 'name images price description');
+    
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    
+    res.json(order);
+  } catch (error) {
+    console.error('Get order details error:', error);
+    res.status(500).json({ error: 'Failed to fetch order details' });
   }
 });
 
