@@ -21,6 +21,11 @@ const Product = require('./models/Product');
 const User = require('./models/User');
 const Order = require('./models/Order');
 
+// Import routes
+const adminRoutes = require('./routes/admin');
+const orderRoutes = require('./routes/orders');
+const productRoutes = require('./routes/products');
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -45,6 +50,11 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+// Use routes
+app.use('/api/admin', adminRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/products', productRoutes);
 
 // Middleware
 app.use(helmet({
