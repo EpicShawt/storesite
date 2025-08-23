@@ -29,14 +29,14 @@ const ProductCard = ({ product }) => {
 
   return (
     <motion.div
-      className="group bg-base-200 rounded-lg shadow-xl overflow-hidden card-hover border border-gray-700"
+      className="group bg-base-200 rounded-lg shadow-xl overflow-hidden card-hover border border-gray-700 h-full flex flex-col"
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
       whileHover={{ y: -5 }}
       transition={{ duration: 0.2 }}
     >
       {/* Product Image */}
-      <div className="relative overflow-hidden">
+      <div className="relative overflow-hidden flex-shrink-0">
         <Link to={`/product/${product._id}`}>
           <img
             src={productImage}
@@ -67,14 +67,14 @@ const ProductCard = ({ product }) => {
       </div>
 
       {/* Product Info */}
-      <div className="p-4">
+      <div className="p-4 flex-1 flex flex-col">
         <Link to={`/product/${product._id}`}>
-          <h3 className="font-semibold text-lg mb-2 text-white hover:text-gray-300 transition-colors">
+          <h3 className="font-semibold text-lg mb-2 text-white hover:text-gray-300 transition-colors line-clamp-2">
             {product.name}
           </h3>
         </Link>
         
-        <p className="text-gray-400 text-sm mb-3 line-clamp-2">
+        <p className="text-gray-400 text-sm mb-3 line-clamp-2 flex-1">
           {product.description}
         </p>
 
@@ -113,12 +113,12 @@ const ProductCard = ({ product }) => {
 
         {/* Size Selection */}
         <div className="mb-4">
-          <div className="flex space-x-2">
+          <div className="flex flex-wrap gap-1">
             {sizes.map((size) => (
               <button
                 key={size}
                 onClick={() => setSelectedSize(size)}
-                className={`px-3 py-1 text-sm rounded border transition-colors ${
+                className={`px-2 py-1 text-xs rounded border transition-colors ${
                   selectedSize === size
                     ? 'bg-white text-black border-white'
                     : 'border-gray-600 text-gray-300 hover:border-white hover:text-white'
@@ -133,7 +133,7 @@ const ProductCard = ({ product }) => {
         {/* Add to Cart Button */}
         <button
           onClick={handleAddToCart}
-          className="w-full btn bg-white text-black hover:bg-gray-200 font-semibold"
+          className="w-full btn bg-white text-black hover:bg-gray-200 font-semibold mt-auto"
         >
           <ShoppingCart className="w-4 h-4 mr-2" />
           Add to Cart
