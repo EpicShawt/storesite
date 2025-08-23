@@ -69,7 +69,7 @@ const Cart = () => {
               <div className="space-y-4">
                 {cart.map((item, index) => (
                   <motion.div
-                    key={`${item.id}-${item.size}`}
+                    key={`${item._id}-${item.size}`}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
@@ -77,7 +77,7 @@ const Cart = () => {
                   >
                     {/* Product Image */}
                     <img
-                      src={item.image}
+                      src={item.images && item.images.length > 0 ? item.images[0].url : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDQwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yMDAgMTUwQzE3OS4wOSAxNTAgMTYyIDE2Ny4wOSAxNjIgMTg4QzE2MiAyMDguOTEgMTc5LjA5IDIyNiAyMDAgMjI2QzIyMC45MSAyMjYgMjM4IDIwOC45MSAyMzggMTg4QzIzOCAxNjcuMDkgMjIwLjkxIDE1MCAyMDAgMTUwWk0yMDAgMjQ2QzE3OS4wOSAyNDYgMTYyIDI2My4wOSAxNjIgMjg0QzE2MiAzMDQuOTEgMTc5LjA5IDMyMiAyMDAgMzIyQzIyMC45MSAzMjIgMjM4IDMwNC45MSAyMzggMjg0QzIzOCAyNjMuMDkgMjIwLjkxIDI0NiAyMDAgMjQ2WiIgZmlsbD0iIzlDQTBBNiIvPgo8L3N2Zz4K'}
                       alt={item.name}
                       className="w-20 h-20 object-cover rounded-lg"
                     />
@@ -92,14 +92,14 @@ const Cart = () => {
                     {/* Quantity Controls */}
                     <div className="flex items-center space-x-2">
                       <button
-                        onClick={() => updateQuantity(item.id, item.size, item.quantity - 1)}
+                        onClick={() => updateQuantity(item._id, item.size, item.quantity - 1)}
                         className="btn btn-sm btn-circle btn-outline"
                       >
                         <Minus className="w-4 h-4" />
                       </button>
                       <span className="w-12 text-center font-semibold">{item.quantity}</span>
                       <button
-                        onClick={() => updateQuantity(item.id, item.size, item.quantity + 1)}
+                        onClick={() => updateQuantity(item._id, item.size, item.quantity + 1)}
                         className="btn btn-sm btn-circle btn-outline"
                       >
                         <Plus className="w-4 h-4" />
@@ -113,7 +113,7 @@ const Cart = () => {
 
                     {/* Remove Button */}
                     <button
-                      onClick={() => removeFromCart(item.id, item.size)}
+                      onClick={() => removeFromCart(item._id, item.size)}
                       className="btn btn-sm btn-error btn-circle"
                     >
                       <Trash2 className="w-4 h-4" />

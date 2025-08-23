@@ -21,7 +21,7 @@ const ProductDetail = () => {
     const savedProducts = localStorage.getItem('asurwears_products')
     if (savedProducts) {
       const products = JSON.parse(savedProducts)
-      const foundProduct = products.find(p => p.id === parseInt(id))
+      const foundProduct = products.find(p => p._id === parseInt(id))
       if (foundProduct) {
         setProduct(foundProduct)
       }
@@ -60,13 +60,15 @@ const ProductDetail = () => {
     )
   }
 
-  // Mock additional images for gallery
-  const productImages = [
-    product.image,
-    product.image.replace('w=400&h=400', 'w=600&h=600'),
-    product.image.replace('w=400&h=400', 'w=600&h=600&fit=crop&crop=center'),
-    product.image.replace('w=400&h=400', 'w=600&h=600&fit=crop&crop=top')
-  ]
+  // Get product images from the images array
+  const productImages = product.images && product.images.length > 0 
+    ? [
+        product.images[0].url,
+        product.images[0].url,
+        product.images[0].url,
+        product.images[0].url
+      ]
+    : ['data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDQwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yMDAgMTUwQzE3OS4wOSAxNTAgMTYyIDE2Ny4wOSAxNjIgMTg4QzE2MiAyMDguOTEgMTc5LjA5IDIyNiAyMDAgMjI2QzIyMC45MSAyMjYgMjM4IDIwOC45MSAyMzggMTg4QzIzOCAxNjcuMDkgMjIwLjkxIDE1MCAyMDAgMTUwWk0yMDAgMjQ2QzE3OS4wOSAyNDYgMTYyIDI2My4wOSAxNjIgMjg0QzE2MiAzMDQuOTEgMTc5LjA5IDMyMiAyMDAgMzIyQzIyMC45MSAzMjIgMjM4IDMwNC45MSAyMzggMjg0QzIzOCAyNjMuMDkgMjIwLjkxIDI0NiAyMDAgMjQ2WiIgZmlsbD0iIzlDQTBBNiIvPgo8L3N2Zz4K']
 
   return (
     <div className="min-h-screen bg-base-200">

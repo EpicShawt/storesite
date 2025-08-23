@@ -32,12 +32,12 @@ export const CartProvider = ({ children }) => {
   const addToCart = (product, size = 'M', quantity = 1) => {
     setCart(prevCart => {
       const existingItem = prevCart.find(
-        item => item.id === product.id && item.size === size
+        item => item._id === product._id && item.size === size
       )
 
       if (existingItem) {
         return prevCart.map(item =>
-          item.id === product.id && item.size === size
+          item._id === product._id && item.size === size
             ? { ...item, quantity: item.quantity + quantity }
             : item
         )
@@ -51,7 +51,7 @@ export const CartProvider = ({ children }) => {
 
   const removeFromCart = (productId, size) => {
     setCart(prevCart => prevCart.filter(
-      item => !(item.id === productId && item.size === size)
+      item => !(item._id === productId && item.size === size)
     ))
     toast.success('Item removed from cart')
   }
@@ -63,7 +63,7 @@ export const CartProvider = ({ children }) => {
     }
 
     setCart(prevCart => prevCart.map(item =>
-      item.id === productId && item.size === size
+      item._id === productId && item.size === size
         ? { ...item, quantity }
         : item
     ))
