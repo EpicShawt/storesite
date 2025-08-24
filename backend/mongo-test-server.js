@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 5000;
 console.log('🔍 MONGO TEST SERVER - Starting...');
 
 // Test MongoDB Connection String
-const mongoUri = 'mongodb+srv://asurwears-admin:asurwear@123@asurwear.7g07qfk.mongodb.net/asurwear?retryWrites=true&w=majority';
+const mongoUri = process.env.MONGODB_URI || 'mongodb+srv://asurwears-admin:asurwear%40123@asurwear.7g07qfk.mongodb.net/asurwears?retryWrites=true&w=majority';
 
 console.log('🔍 Testing MongoDB connection...');
 console.log('🔍 URI:', mongoUri.replace(/\/\/.*@/, '//***:***@')); // Hide credentials

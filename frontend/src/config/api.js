@@ -11,7 +11,8 @@ const getApiBaseUrl = () => {
     if (isDevelopment) {
       backendUrl = 'http://localhost:5000';
     } else {
-      backendUrl = 'https://asurwearcom-backend.vercel.app';
+      // TODO: Update this URL when you deploy your backend
+      backendUrl = 'https://your-backend-url.railway.app';
     }
   }
 

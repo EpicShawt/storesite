@@ -18,7 +18,7 @@ cloudinary.config({
 });
 
 // MongoDB Connection
-mongoose.connect('mongodb+srv://asurwears-admin:asurwear%40123@asurwear.7g07qfk.mongodb.net/asurwear?retryWrites=true&w=majority', {
+mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://asurwears-admin:asurwear%40123@asurwear.7g07qfk.mongodb.net/asurwears?retryWrites=true&w=majority', {
   serverSelectionTimeoutMS: 5000,
   socketTimeoutMS: 45000,
 })

@@ -3,10 +3,10 @@ const mongoose = require('mongoose');
 // Test different connection string formats
 const connectionStrings = [
   // Original (broken) - @ in password causes issues
-  'mongodb+srv://asurwears-admin:asurwear@123@asurwear.7g07qfk.mongodb.net/asurwear?retryWrites=true&w=majority',
-  
-  // URL encoded password
-  'mongodb+srv://asurwears-admin:asurwear%40123@asurwear.7g07qfk.mongodb.net/asurwear?retryWrites=true&w=majority',
+  'mongodb+srv://asurwears-admin:asurwear%40123@asurwear.7g07qfk.mongodb.net/asurwears?retryWrites=true&w=majority',
+
+// URL encoded password
+'mongodb+srv://asurwears-admin:asurwear%40123@asurwear.7g07qfk.mongodb.net/asurwears?retryWrites=true&w=majority',
   
   // Using environment variable
   process.env.MONGODB_URI

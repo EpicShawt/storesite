@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Product = require('./models/Product');
 
 // MongoDB connection
-const MONGODB_URI = 'mongodb+srv://asurwears-admin:asurwear%40123@asurwear.7g07qfk.mongodb.net/asurwears?retryWrites=true&w=majority';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://asurwears-admin:asurwear%40123@asurwear.7g07qfk.mongodb.net/asurwears?retryWrites=true&w=majority';
 
 const products = [
   {
