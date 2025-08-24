@@ -9,7 +9,7 @@ const getApiBaseUrl = () => {
   if (!backendUrl) {
     // Fallback URLs based on environment
     if (isDevelopment) {
-      backendUrl = 'http://localhost:5000';
+      backendUrl = 'http://localhost:3001';
     } else {
       // TODO: Update this URL when you deploy your backend
       backendUrl = 'https://your-backend-url.railway.app';
